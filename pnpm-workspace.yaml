@@ -1,3 +1,7 @@
 packages:
-  - 'packages/*'
-  - 'services/*'
+  - packages/*
+  - services/*
+
+onlyBuiltDependencies:
+  - sharp
+  - unrs-resolver

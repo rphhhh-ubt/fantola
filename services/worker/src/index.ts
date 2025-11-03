@@ -1,6 +1,8 @@
 import { getConfig } from '@monorepo/config';
 import { formatDate } from '@monorepo/shared';
 import { Monitoring } from '@monorepo/monitoring';
+import { ImageProcessor } from './processors/image-processor';
+import { ImageTool, ImageProcessingJob } from './types';
 
 async function main() {
   const config = getConfig();
@@ -28,10 +30,24 @@ async function main() {
     'Processing jobs started'
   );
 
-  simulateJobProcessing(monitoring);
+  const imageProcessor = new ImageProcessor(
+    {
+      bucket: process.env.S3_BUCKET || 'image-processing',
+      region: process.env.S3_REGION || 'us-east-1',
+      endpoint: process.env.S3_ENDPOINT,
+      accessKeyId: process.env.S3_ACCESS_KEY_ID,
+      secretAccessKey: process.env.S3_SECRET_ACCESS_KEY,
+    },
+    monitoring
+  );
+
+  await simulateJobProcessing(monitoring, imageProcessor);
 }
 
-function simulateJobProcessing(monitoring: Monitoring): void {
+async function simulateJobProcessing(
+  monitoring: Monitoring,
+  imageProcessor: ImageProcessor
+): Promise<void> {
   const queueName = 'image-generation';
   const jobType = 'image';
 
@@ -43,6 +59,29 @@ function simulateJobProcessing(monitoring: Monitoring): void {
     monitoring.metrics.setActiveJobs(queueName, 1);
 
     monitoring.logger.debug('Processing job...');
+
+    const sampleJob: ImageProcessingJob = {
+      id: `job-${Date.now()}`,
+      tool: ImageTool.DALL_E,
+      sourceUrl: 'https://example.com/sample-image.jpg',
+      userId: 'user-123',
+      metadata: {
+        prompt: 'A beautiful landscape',
+      },
+    };
+
+    const result = await imageProcessor.processImage(sampleJob);
+
+    if (result.success) {
+      monitoring.logger.info(
+        {
+          jobId: result.jobId,
+          variants: result.variants.length,
+          processingTimeMs: result.processingTimeMs,
+        },
+        'Image processed successfully'
+      );
+    }
 
     monitoring.trackKPI({
       type: 'token_spend',

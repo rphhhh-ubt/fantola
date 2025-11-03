@@ -273,6 +273,16 @@ export class MockS3Client {
     return { Contents: contents };
   }
 
+  async send(command: any): Promise<any> {
+    if (command.Bucket && command.Key && command.Body) {
+      return this.putObject(command);
+    }
+    if (command.Bucket && command.Key && !command.Body) {
+      return this.getObject(command);
+    }
+    return { ETag: `"${Date.now()}"` };
+  }
+
   clear() {
     this.buckets.clear();
   }

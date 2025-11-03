@@ -1,5 +1,8 @@
 # Monorepo
 
+[![CI](https://github.com/YOUR_USERNAME/YOUR_REPO/actions/workflows/ci.yml/badge.svg)](https://github.com/YOUR_USERNAME/YOUR_REPO/actions/workflows/ci.yml)
+[![Build & Deploy](https://github.com/YOUR_USERNAME/YOUR_REPO/actions/workflows/build-deploy.yml/badge.svg)](https://github.com/YOUR_USERNAME/YOUR_REPO/actions/workflows/build-deploy.yml)
+
 A modern TypeScript monorepo powered by pnpm workspaces.
 
 ## 🏗️ Architecture
@@ -89,6 +92,86 @@ make railway-deploy
 For detailed deployment instructions, see:
 - [Quickstart Guide](docs/QUICKSTART.md) - Get deployed in 5 minutes
 - [Deployment Guide](docs/DEPLOYMENT.md) - Comprehensive deployment documentation
+
+## 🔄 CI/CD
+
+This project uses GitHub Actions for continuous integration and deployment.
+
+### Workflows
+
+- **CI Pipeline**: Runs on every push to `main` and on pull requests
+  - Linting with ESLint
+  - Type checking with TypeScript
+  - Building all packages and services
+  - Running tests
+  - Caching pnpm store for faster builds
+
+- **Build & Deploy Pipeline**: Runs on push to `main` or version tags
+  - Builds Docker images for all services (api, bot, worker)
+  - Pushes images to GitHub Container Registry
+  - Runs database migrations
+  - Deploys services to production
+
+### Docker Images
+
+Docker images are automatically built and pushed to GitHub Container Registry (GHCR) with the following tags:
+- `latest` - Latest build from main branch
+- `main-<sha>` - Specific commit from main branch
+- `v1.2.3` - Semantic version tags
+- `1.2` - Major.minor version tags
+- `1` - Major version tags
+
+### Required Secrets
+
+Configure the following secrets in your GitHub repository settings (Settings → Secrets and variables → Actions):
+
+#### Required for Migrations & Deployment
+
+- `DATABASE_URL`: PostgreSQL connection string for running migrations
+  - Format: `postgresql://user:password@host:port/database`
+  - Example: `postgresql://postgres:secure_password@db.example.com:5432/production_db`
+
+#### Optional for Custom Deployment
+
+- `DEPLOY_KEY`: SSH private key for deployment server access
+- `DEPLOY_HOST`: Hostname or IP of the deployment server
+- `DEPLOY_USER`: Username for SSH connection
+
+#### Built-in Secrets (automatically available)
+
+- `GITHUB_TOKEN`: Automatically provided by GitHub Actions for pushing Docker images to GHCR
+
+### Caching Strategy
+
+The CI/CD pipelines use multiple caching strategies for optimal performance:
+
+1. **pnpm Store Cache**: Caches the global pnpm store to speed up dependency installation
+   - Key: `${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}`
+   - Invalidated when `pnpm-lock.yaml` changes
+
+2. **Prisma Client Cache**: Caches generated Prisma clients (if Prisma is used)
+   - Key: `${{ runner.os }}-prisma-${{ hashFiles('**/schema.prisma') }}`
+   - Invalidated when Prisma schema files change
+   - Significantly reduces CI time by avoiding regenerating Prisma clients
+
+3. **Docker Build Cache**: Uses GitHub Actions cache for Docker layer caching
+   - Significantly speeds up Docker image builds
+   - Automatically managed by Docker Buildx
+
+### Setting Up CI/CD
+
+1. **Enable GitHub Actions**: Actions are enabled by default in most repositories
+
+2. **Configure Secrets**:
+   ```bash
+   # Go to your repository on GitHub
+   # Navigate to Settings → Secrets and variables → Actions
+   # Click "New repository secret" for each required secret
+   ```
+
+3. **Update Badge URLs**: Replace `YOUR_USERNAME/YOUR_REPO` in README badges with your actual GitHub repository path
+
+4. **First Run**: Push to `main` branch or create a pull request to trigger the workflows
 
 ### Development
 

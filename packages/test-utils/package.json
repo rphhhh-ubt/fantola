@@ -1,5 +1,5 @@
 {
-  "name": "@monorepo/shared",
+  "name": "@monorepo/test-utils",
   "version": "1.0.0",
   "private": true,
   "main": "dist/index.js",
@@ -9,9 +9,7 @@
     "clean": "rm -rf dist",
     "typecheck": "tsc --noEmit",
     "lint": "eslint src --ext .ts",
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage"
+    "test": "jest"
   },
   "devDependencies": {
     "@types/jest": "^30.0.0",

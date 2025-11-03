@@ -1,0 +1,31 @@
+{
+  "$schema": "https://railway.app/railway.schema.json",
+  "build": {
+    "builder": "DOCKERFILE",
+    "dockerfilePath": "Dockerfile.api"
+  },
+  "deploy": {
+    "startCommand": "node services/api/dist/index.js",
+    "healthcheckPath": "/health",
+    "healthcheckTimeout": 100,
+    "restartPolicyType": "ON_FAILURE",
+    "restartPolicyMaxRetries": 3,
+    "numReplicas": 2
+  },
+  "services": {
+    "api": {
+      "name": "API Service",
+      "runtime": "nodejs",
+      "ports": [
+        {
+          "port": 3000,
+          "protocol": "http"
+        }
+      ],
+      "env": {
+        "NODE_ENV": "production",
+        "PORT": "3000"
+      }
+    }
+  }
+}

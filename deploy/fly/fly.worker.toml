@@ -1,0 +1,42 @@
+app = "monorepo-worker"
+primary_region = "iad"
+
+[build]
+  dockerfile = "../../Dockerfile.worker"
+
+[env]
+  NODE_ENV = "production"
+  WORKER_CONCURRENCY = "10"
+
+[vm]
+  cpu_kind = "shared"
+  cpus = 1
+  memory_mb = 512
+
+[deploy]
+  strategy = "immediate"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"
+
+[processes]
+  app = "node services/worker/dist/index.js"
+
+[metrics]
+  port = 9091
+  path = "/metrics"
+
+# Worker doesn't need HTTP service but needs to stay running
+[[services]]
+  internal_port = 8080
+  protocol = "tcp"
+  auto_stop_machines = false
+  auto_start_machines = true
+  min_machines_running = 1
+
+# Scale configuration for workers
+[[mounts]]
+  source = "worker_data"
+  destination = "/data"
+  initial_size = "1GB"

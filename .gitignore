@@ -38,3 +38,19 @@ coverage/
 tmp/
 temp/
 *.tmp
+
+# Backups
+backups/
+*.sql.gz
+# Allow migration and init SQL files
+!scripts/db/**/*.sql
+
+# SSL certificates
+deploy/nginx/ssl/
+*.pem
+*.key
+*.crt
+
+# Local development
+.env.production
+.env.staging

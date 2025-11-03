@@ -1,0 +1,43 @@
+# Base stage
+FROM node:18-alpine AS base
+RUN npm install -g pnpm@8
+WORKDIR /app
+
+# Dependencies stage
+FROM base AS dependencies
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY packages/config/package.json ./packages/config/
+COPY packages/shared/package.json ./packages/shared/
+COPY services/api/package.json ./services/api/
+RUN pnpm install --frozen-lockfile
+
+# Build stage
+FROM base AS build
+COPY --from=dependencies /app/node_modules ./node_modules
+COPY --from=dependencies /app/packages/config/node_modules ./packages/config/node_modules
+COPY --from=dependencies /app/packages/shared/node_modules ./packages/shared/node_modules
+COPY --from=dependencies /app/services/api/node_modules ./services/api/node_modules
+COPY . .
+RUN pnpm build --filter api
+
+# Production stage
+FROM node:18-alpine AS production
+RUN npm install -g pnpm@8
+WORKDIR /app
+
+ENV NODE_ENV=production
+
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY packages/config/package.json ./packages/config/
+COPY packages/shared/package.json ./packages/shared/
+COPY services/api/package.json ./services/api/
+
+RUN pnpm install --frozen-lockfile --prod
+
+COPY --from=build /app/packages/config/dist ./packages/config/dist
+COPY --from=build /app/packages/shared/dist ./packages/shared/dist
+COPY --from=build /app/services/api/dist ./services/api/dist
+
+EXPOSE 3000
+
+CMD ["node", "services/api/dist/index.js"]

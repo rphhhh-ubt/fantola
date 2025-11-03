@@ -16,7 +16,8 @@
   },
   "dependencies": {
     "@monorepo/config": "workspace:*",
-    "@monorepo/shared": "workspace:*"
+    "@monorepo/shared": "workspace:*",
+    "@monorepo/monitoring": "workspace:*"
   },
   "devDependencies": {
     "@monorepo/test-utils": "workspace:*",

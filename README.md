@@ -39,6 +39,15 @@ Shared configuration utilities and environment variable management used across a
 ### Shared (`packages/shared`)
 Common types, interfaces, utilities, and business logic shared between services.
 
+### Monitoring (`packages/monitoring`)
+Comprehensive monitoring, logging, and analytics package featuring:
+- **Pino**: Structured JSON logging with pretty printing for development
+- **Prometheus**: Metrics collection and KPI tracking
+- **Sentry**: Error tracking and performance monitoring
+- **Alerting**: Built-in alert system for critical events
+
+See [Monitoring Guide](docs/MONITORING.md) and [KPI Tracking Guide](docs/KPI_TRACKING.md) for details.
+
 ## 🛠️ Tech Stack
 
 - **Language:** TypeScript
@@ -47,6 +56,9 @@ Common types, interfaces, utilities, and business logic shared between services.
 - **Linting:** ESLint with TypeScript support
 - **Formatting:** Prettier
 - **Build Tool:** TypeScript Compiler (tsc)
+- **Monitoring:** Pino, Prometheus, Sentry
+- **Metrics:** Prometheus with Grafana dashboards
+- **Error Tracking:** Sentry
 
 ## 🚀 Getting Started
 
@@ -233,6 +245,76 @@ For detailed testing documentation, see [Testing Guide](docs/TESTING.md).
 Clean build artifacts:
 ```bash
 pnpm clean
+```
+
+## 📊 Monitoring & Analytics
+
+This monorepo includes comprehensive monitoring and analytics capabilities:
+
+### Quick Start
+
+1. **Enable metrics** in your `.env`:
+   ```bash
+   ENABLE_METRICS=true
+   METRICS_PORT=9091
+   LOG_LEVEL=info
+   ```
+
+2. **Access metrics**:
+   - Metrics: http://localhost:9091/metrics
+   - Health: http://localhost:9091/health
+
+3. **Start monitoring stack** (optional):
+   ```bash
+   docker-compose -f docker-compose.monitoring.yml up -d
+   ```
+   - Prometheus: http://localhost:9090
+   - Grafana: http://localhost:3001 (admin/admin)
+   - AlertManager: http://localhost:9093
+
+### Key Performance Indicators (KPIs)
+
+The system tracks:
+- **Active Users**: Real-time user activity
+- **Generation Success/Failure**: AI content generation metrics
+- **Token Spend**: AI API cost tracking
+- **Payment Conversions**: Revenue and payment metrics
+- **Queue Performance**: Background job processing
+- **HTTP Performance**: API response times and errors
+
+### Documentation
+
+- [Monitoring Setup Guide](docs/MONITORING.md) - Complete setup instructions
+- [KPI Tracking Guide](docs/KPI_TRACKING.md) - How to track business metrics
+- [Analytics Queries](packages/monitoring/ANALYTICS.md) - Prometheus queries and dashboards
+
+### Example Usage
+
+```typescript
+import { Monitoring } from '@monorepo/monitoring';
+
+const monitoring = new Monitoring({ service: 'api' });
+
+// Start metrics server
+await monitoring.startMetricsServer();
+
+// Track KPIs
+monitoring.trackKPI({
+  type: 'active_user',
+  data: { userId: 'user-123' },
+});
+
+monitoring.trackKPI({
+  type: 'generation_success',
+  data: { type: 'image' },
+});
+
+// Handle errors
+try {
+  await processJob();
+} catch (error) {
+  monitoring.handleError(error, { context: 'job-processing' });
+}
 ```
 
 ## 📝 Contribution Workflow

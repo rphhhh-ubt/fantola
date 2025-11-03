@@ -9,6 +9,7 @@
   "references": [
     { "path": "../../packages/config" },
     { "path": "../../packages/shared" },
+    { "path": "../../packages/monitoring" },
     { "path": "../../packages/test-utils" }
   ]
 }

@@ -1,12 +1,11 @@
 {
-  "name": "worker",
+  "name": "@monorepo/monitoring",
   "version": "1.0.0",
   "private": true,
   "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
-    "dev": "ts-node src/index.ts",
-    "start": "node dist/index.js",
     "clean": "rm -rf dist",
     "typecheck": "tsc --noEmit",
     "lint": "eslint src --ext .ts",
@@ -15,17 +14,16 @@
     "test:coverage": "jest --coverage"
   },
   "dependencies": {
-    "@monorepo/config": "workspace:*",
-    "@monorepo/shared": "workspace:*",
-    "@monorepo/monitoring": "workspace:*"
+    "pino": "^8.16.2",
+    "pino-pretty": "^10.2.3",
+    "prom-client": "^15.1.0",
+    "@sentry/node": "^7.91.0"
   },
   "devDependencies": {
-    "@monorepo/test-utils": "workspace:*",
     "@types/jest": "^30.0.0",
     "@types/node": "^20.10.0",
     "jest": "^30.2.0",
     "ts-jest": "^29.4.5",
-    "ts-node": "^10.9.1",
     "typescript": "^5.3.2"
   }
 }

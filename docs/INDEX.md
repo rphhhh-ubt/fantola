@@ -7,6 +7,13 @@ Welcome to the monorepo documentation! This index will help you find the informa
 ### Getting Started
 - **[Main README](../README.md)** - Project overview, architecture, and local development setup
 - **[CONTRIBUTING](../CONTRIBUTING.md)** - Contribution guidelines and development workflow
+- **[Testing Guide](TESTING.md)** 🧪 *Testing strategy and utilities*
+  - Testing framework setup (Jest + ts-jest)
+  - Mock utilities for external services
+  - Unit, integration, and end-to-end testing
+  - Running tests with Docker
+  - CI/CD integration
+  - Coverage requirements
 
 ### Deployment
 - **[Quickstart Guide](QUICKSTART.md)** ⭐ *Start here for deployment*

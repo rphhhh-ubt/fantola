@@ -1,0 +1,60 @@
+version: '3.8'
+
+services:
+  postgres-test:
+    image: postgres:15-alpine
+    container_name: monorepo-postgres-test
+    environment:
+      POSTGRES_DB: ${POSTGRES_TEST_DB:-monorepo_test}
+      POSTGRES_USER: ${POSTGRES_TEST_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_TEST_PASSWORD:-postgres}
+    ports:
+      - "${POSTGRES_TEST_PORT:-5433}:5432"
+    volumes:
+      - postgres_test_data:/var/lib/postgresql/data
+      - ./scripts/db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_TEST_USER:-postgres}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis-test:
+    image: redis:7-alpine
+    container_name: monorepo-redis-test
+    ports:
+      - "${REDIS_TEST_PORT:-6380}:6379"
+    volumes:
+      - redis_test_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  test-runner:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    container_name: monorepo-test-runner
+    environment:
+      NODE_ENV: test
+      DATABASE_URL: postgresql://${POSTGRES_TEST_USER:-postgres}:${POSTGRES_TEST_PASSWORD:-postgres}@postgres-test:5432/${POSTGRES_TEST_DB:-monorepo_test}
+      REDIS_URL: redis://redis-test:6379
+    depends_on:
+      postgres-test:
+        condition: service_healthy
+      redis-test:
+        condition: service_healthy
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/services/*/node_modules
+      - /app/packages/*/node_modules
+    command: pnpm test:ci
+
+volumes:
+  postgres_test_data:
+    driver: local
+  redis_test_data:
+    driver: local

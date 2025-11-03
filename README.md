@@ -212,8 +212,21 @@ pnpm typecheck
 
 Run tests across all packages and services:
 ```bash
-pnpm test
+pnpm test              # Run all tests
+pnpm test:watch        # Run tests in watch mode
+pnpm test:coverage     # Run tests with coverage report
+pnpm test:ci           # Run tests optimized for CI
 ```
+
+Or use Make commands:
+```bash
+make test              # Run all tests
+make test-watch        # Run tests in watch mode
+make test-coverage     # Run tests with coverage
+make test-docker       # Run tests in Docker environment
+```
+
+For detailed testing documentation, see [Testing Guide](docs/TESTING.md).
 
 ### Cleaning
 

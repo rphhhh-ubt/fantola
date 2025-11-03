@@ -1,0 +1,22 @@
+{
+  "$schema": "https://railway.app/railway.schema.json",
+  "build": {
+    "builder": "DOCKERFILE",
+    "dockerfilePath": "Dockerfile.bot"
+  },
+  "deploy": {
+    "startCommand": "node services/bot/dist/index.js",
+    "restartPolicyType": "ON_FAILURE",
+    "restartPolicyMaxRetries": 3,
+    "numReplicas": 1
+  },
+  "services": {
+    "bot": {
+      "name": "Bot Service",
+      "runtime": "nodejs",
+      "env": {
+        "NODE_ENV": "production"
+      }
+    }
+  }
+}

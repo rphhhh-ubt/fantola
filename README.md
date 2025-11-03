@@ -65,6 +65,31 @@ Install all dependencies across the monorepo:
 pnpm install
 ```
 
+## 🚢 Deployment
+
+This project supports multiple deployment platforms:
+
+- **Docker Compose**: Self-hosted deployment with full control
+- **Fly.io**: Global distribution with automatic scaling
+- **Railway**: Simple deployment with managed services
+
+### Quick Deploy
+
+```bash
+# Docker Compose (self-hosted)
+make docker-deploy
+
+# Fly.io
+make fly-deploy
+
+# Railway
+make railway-deploy
+```
+
+For detailed deployment instructions, see:
+- [Quickstart Guide](docs/QUICKSTART.md) - Get deployed in 5 minutes
+- [Deployment Guide](docs/DEPLOYMENT.md) - Comprehensive deployment documentation
+
 ### Development
 
 Run all services in development mode:

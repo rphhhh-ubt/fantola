@@ -9,6 +9,10 @@ export interface Config {
   sentryTracesSampleRate: number;
   sentryProfilesSampleRate: number;
   alertWebhookUrl?: string;
+  redisUrl: string;
+  redisHost: string;
+  redisPort: number;
+  redisPassword?: string;
 }
 
 export function getConfig(): Config {
@@ -23,5 +27,9 @@ export function getConfig(): Config {
     sentryTracesSampleRate: parseFloat(process.env.SENTRY_TRACES_SAMPLE_RATE || '1.0'),
     sentryProfilesSampleRate: parseFloat(process.env.SENTRY_PROFILES_SAMPLE_RATE || '1.0'),
     alertWebhookUrl: process.env.ALERT_WEBHOOK_URL,
+    redisUrl: process.env.REDIS_URL || `redis://${process.env.REDIS_HOST || 'localhost'}:${process.env.REDIS_PORT || '6379'}`,
+    redisHost: process.env.REDIS_HOST || 'localhost',
+    redisPort: parseInt(process.env.REDIS_PORT || '6379', 10),
+    redisPassword: process.env.REDIS_PASSWORD,
   };
 }

@@ -1,0 +1,30 @@
+{
+  "name": "@monorepo/rate-limit",
+  "version": "1.0.0",
+  "description": "Redis-based rate limiting, caching, and token billing for Telegram bot",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc --build",
+    "clean": "rm -rf dist tsconfig.tsbuildinfo",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src --ext .ts",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage"
+  },
+  "dependencies": {
+    "ioredis": "^5.3.2"
+  },
+  "devDependencies": {
+    "@monorepo/test-utils": "workspace:*",
+    "@types/node": "^20.10.0",
+    "typescript": "^5.3.3"
+  },
+  "keywords": [
+    "rate-limiting",
+    "caching",
+    "redis",
+    "token-billing"
+  ]
+}

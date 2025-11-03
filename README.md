@@ -1,0 +1,262 @@
+# Monorepo
+
+A modern TypeScript monorepo powered by pnpm workspaces.
+
+## 🏗️ Architecture
+
+This monorepo consists of multiple services and shared packages organized using pnpm workspaces:
+
+```
+monorepo/
+├── services/
+│   ├── api/          # REST API service
+│   ├── bot/          # Bot service
+│   └── worker/       # Background worker service
+├── packages/
+│   ├── config/       # Shared configuration utilities
+│   └── shared/       # Shared types, utilities, and business logic
+```
+
+## 📦 Services
+
+### API (`services/api`)
+The main REST API service responsible for handling HTTP requests and serving data to clients.
+
+### Bot (`services/bot`)
+A bot service for automated tasks, integrations, or chat functionality.
+
+### Worker (`services/worker`)
+A background worker service for processing asynchronous jobs, scheduled tasks, or queue-based operations.
+
+## 📚 Packages
+
+### Config (`packages/config`)
+Shared configuration utilities and environment variable management used across all services.
+
+### Shared (`packages/shared`)
+Common types, interfaces, utilities, and business logic shared between services.
+
+## 🛠️ Tech Stack
+
+- **Language:** TypeScript
+- **Package Manager:** pnpm (with workspaces)
+- **Runtime:** Node.js (>=18.0.0)
+- **Linting:** ESLint with TypeScript support
+- **Formatting:** Prettier
+- **Build Tool:** TypeScript Compiler (tsc)
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- Node.js >= 18.0.0
+- pnpm >= 8.0.0
+
+Install pnpm if you don't have it:
+```bash
+npm install -g pnpm
+```
+
+### Installation
+
+Install all dependencies across the monorepo:
+
+```bash
+pnpm install
+```
+
+### Development
+
+Run all services in development mode:
+```bash
+pnpm dev
+```
+
+Run a specific service:
+```bash
+pnpm api:dev      # Run API service
+pnpm bot:dev      # Run bot service
+pnpm worker:dev   # Run worker service
+```
+
+### Building
+
+Build all packages and services:
+```bash
+pnpm build
+```
+
+### Linting
+
+Lint all packages and services:
+```bash
+pnpm lint
+```
+
+### Type Checking
+
+Run TypeScript type checking across the monorepo:
+```bash
+pnpm typecheck
+```
+
+### Testing
+
+Run tests across all packages and services:
+```bash
+pnpm test
+```
+
+### Cleaning
+
+Clean build artifacts:
+```bash
+pnpm clean
+```
+
+## 📝 Contribution Workflow
+
+### 1. Branch Naming Convention
+
+- **Feature:** `feature/description`
+- **Bug Fix:** `fix/description`
+- **Chore:** `chore/description`
+- **Docs:** `docs/description`
+
+### 2. Making Changes
+
+1. Create a new branch from `main`:
+   ```bash
+   git checkout -b feature/my-new-feature
+   ```
+
+2. Make your changes in the appropriate workspace(s)
+
+3. Ensure your code passes all checks:
+   ```bash
+   pnpm lint
+   pnpm typecheck
+   pnpm build
+   pnpm test
+   ```
+
+### 3. Code Style
+
+- Follow the existing code style
+- Use TypeScript strict mode
+- Write meaningful commit messages
+- Keep functions small and focused
+- Add types for all function parameters and return values
+
+### 4. Adding Dependencies
+
+Add a dependency to a specific workspace:
+```bash
+# For a service
+pnpm --filter api add <package-name>
+
+# For a shared package
+pnpm --filter @monorepo/shared add <package-name>
+
+# For root (dev dependencies)
+pnpm add -w -D <package-name>
+```
+
+### 5. Creating New Workspaces
+
+When creating a new workspace:
+
+1. Add the workspace directory to `pnpm-workspace.yaml` (if needed)
+2. Create a `package.json` with appropriate scripts
+3. Create a `tsconfig.json` extending the root configuration
+4. Add a `src/` directory with an `index.ts` entry point
+5. If it depends on other workspaces, use `workspace:*` protocol
+
+### 6. Submitting Changes
+
+1. Commit your changes:
+   ```bash
+   git add .
+   git commit -m "feat: add new feature"
+   ```
+
+2. Push your branch:
+   ```bash
+   git push origin feature/my-new-feature
+   ```
+
+3. Create a pull request for review
+
+## 🔧 Workspace Configuration
+
+### Adding Workspace Dependencies
+
+To use one workspace in another, add it as a dependency using the `workspace:*` protocol:
+
+```json
+{
+  "dependencies": {
+    "@monorepo/shared": "workspace:*"
+  }
+}
+```
+
+### Filtering Commands
+
+Run commands on specific workspaces:
+
+```bash
+# Run command in a specific workspace
+pnpm --filter <workspace-name> <command>
+
+# Run command in multiple workspaces
+pnpm --filter "@monorepo/*" <command>
+
+# Run command in all services
+pnpm --filter "./services/*" <command>
+```
+
+## 📂 Project Structure
+
+```
+.
+├── .editorconfig              # Editor configuration
+├── .eslintrc.json            # ESLint configuration
+├── .gitignore                # Git ignore rules
+├── .prettierrc.json          # Prettier configuration
+├── package.json              # Root package.json with workspace scripts
+├── pnpm-workspace.yaml       # pnpm workspace configuration
+├── tsconfig.json             # Root TypeScript configuration
+├── README.md                 # This file
+├── packages/
+│   ├── config/
+│   │   ├── package.json
+│   │   ├── tsconfig.json
+│   │   └── src/
+│   │       └── index.ts
+│   └── shared/
+│       ├── package.json
+│       ├── tsconfig.json
+│       └── src/
+│           └── index.ts
+└── services/
+    ├── api/
+    │   ├── package.json
+    │   ├── tsconfig.json
+    │   └── src/
+    │       └── index.ts
+    ├── bot/
+    │   ├── package.json
+    │   ├── tsconfig.json
+    │   └── src/
+    │       └── index.ts
+    └── worker/
+        ├── package.json
+        ├── tsconfig.json
+        └── src/
+            └── index.ts
+```
+
+## 📄 License
+
+This project is private and proprietary.

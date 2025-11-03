@@ -1,0 +1,29 @@
+{
+  "name": "monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A pnpm-based TypeScript monorepo for services and shared packages",
+  "scripts": {
+    "build": "pnpm -r --stream build",
+    "dev": "pnpm -r --parallel --stream dev",
+    "lint": "pnpm -r --stream lint",
+    "typecheck": "pnpm -r --stream typecheck",
+    "clean": "pnpm -r --stream clean",
+    "test": "pnpm -r --stream test",
+    "bot:dev": "pnpm --filter bot dev",
+    "api:dev": "pnpm --filter api dev",
+    "worker:dev": "pnpm --filter worker dev"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=8.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@typescript-eslint/eslint-plugin": "^6.13.0",
+    "@typescript-eslint/parser": "^6.13.0",
+    "eslint": "^8.54.0",
+    "prettier": "^3.1.0",
+    "typescript": "^5.3.2"
+  }
+}

@@ -23,6 +23,7 @@ enum SubscriptionTier {
 enum OperationType {
   image_generation  // DALL-E, Stable Diffusion: 10 tokens
   sora_image        // Sora video generation: 10 tokens
+  product_card      // Product card generation: 10 tokens
   chatgpt_message   // ChatGPT message: 5 tokens
   refund            // Token refund
   purchase          // Token purchase
@@ -48,6 +49,7 @@ enum GenerationTool {
   sora          // Sora video generation
   stable_diffusion
   chatgpt
+  product_card  // Product card generation
 }
 
 enum GenerationStatus {
@@ -95,12 +97,13 @@ model User {
   channelSubscribedAt DateTime? @map("channel_subscribed_at") @db.Timestamptz
 
   // Relations
-  tokenOperations      TokenOperation[]
-  subscriptionHistory  SubscriptionHistory[]
-  generations          Generation[]
-  chatMessages         ChatMessage[]
-  payments             Payment[]
-  soraGenerations      SoraGeneration[]
+  tokenOperations         TokenOperation[]
+  subscriptionHistory     SubscriptionHistory[]
+  generations             Generation[]
+  chatMessages            ChatMessage[]
+  payments                Payment[]
+  soraGenerations         SoraGeneration[]
+  productCardGenerations  ProductCardGeneration[]
 
   @@index([telegramId])
   @@index([tier])
@@ -360,4 +363,63 @@ model SoraImage {
   @@index([moderationStatus])
   @@index([expiresAt])
   @@map("sora_images")
+}
+
+model ProductCardGeneration {
+  id        String   @id @default(uuid()) @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  userId String @map("user_id") @db.Uuid
+  status GenerationStatus @default(pending)
+
+  // Input - Product photo
+  productImageUrl String @map("product_image_url") @db.Text
+  productImageKey String @map("product_image_key") @db.VarChar(500)
+
+  // Mode selection
+  mode String @db.VarChar(50) // 'clean' or 'infographics'
+
+  // Editable options
+  background String? @db.VarChar(255)
+  pose String? @db.VarChar(255)
+  textHeadline String? @map("text_headline") @db.VarChar(500)
+  textSubheadline String? @map("text_subheadline") @db.VarChar(500)
+  textDescription String? @map("text_description") @db.Text
+
+  // Moderation
+  moderationStatus ModerationStatus @default(pending) @map("moderation_status")
+  moderationReason String? @map("moderation_reason") @db.Text
+  moderatedAt DateTime? @map("moderated_at") @db.Timestamptz
+
+  // Output
+  resultUrls String[] @map("result_urls")
+  errorMessage String? @map("error_message") @db.Text
+
+  // Tokens
+  tokensUsed Int @map("tokens_used") @default(0)
+
+  // Processing times
+  startedAt DateTime? @map("started_at") @db.Timestamptz
+  completedAt DateTime? @map("completed_at") @db.Timestamptz
+
+  // Retry tracking
+  retryCount Int @default(0) @map("retry_count")
+  lastRetryAt DateTime? @map("last_retry_at") @db.Timestamptz
+
+  // Parent generation (for "Generate more" and "Edit" workflows)
+  parentGenerationId String? @map("parent_generation_id") @db.Uuid
+
+  // Optional metadata
+  metadata Json?
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
+  @@index([moderationStatus])
+  @@index([parentGenerationId])
+  @@index([createdAt])
+  @@map("product_card_generations")
 }

@@ -1,6 +1,7 @@
 import { Queue } from 'bullmq';
 import { Monitoring } from '@monorepo/monitoring';
 import { createRedisConnection, QueueName } from '@monorepo/shared';
+import { ProductCardOptions } from '@monorepo/shared';
 
 export interface SoraGenerationJob {
   generationId: string;
@@ -9,8 +10,16 @@ export interface SoraGenerationJob {
   imageUrls: string[];
 }
 
+export interface ProductCardGenerationJob {
+  generationId: string;
+  userId: string;
+  productImageUrl: string;
+  options: ProductCardOptions;
+}
+
 export class QueueService {
   private soraQueue: Queue;
+  private productCardQueue: Queue;
   private monitoring: Monitoring;
 
   constructor(monitoring: Monitoring, redisHost: string, redisPort: number, redisPassword?: string) {
@@ -21,6 +30,24 @@ export class QueueService {
     });
 
     this.soraQueue = new Queue(QueueName.SORA_GENERATION, {
+      connection,
+      defaultJobOptions: {
+        attempts: 3,
+        backoff: {
+          type: 'exponential',
+          delay: 5000,
+        },
+        removeOnComplete: {
+          count: 100,
+          age: 3600,
+        },
+        removeOnFail: {
+          count: 1000,
+        },
+      },
+    });
+
+    this.productCardQueue = new Queue(QueueName.PRODUCT_CARD_GENERATION, {
       connection,
       defaultJobOptions: {
         attempts: 3,
@@ -56,7 +83,23 @@ export class QueueService {
     );
   }
 
+  async queueProductCardGeneration(data: ProductCardGenerationJob): Promise<void> {
+    await this.productCardQueue.add('product-card-generation', data, {
+      jobId: data.generationId,
+    });
+
+    this.monitoring.logger.info(
+      {
+        generationId: data.generationId,
+        userId: data.userId,
+        mode: data.options.mode,
+      },
+      'Product card generation job queued'
+    );
+  }
+
   async close(): Promise<void> {
     await this.soraQueue.close();
+    await this.productCardQueue.close();
   }
 }

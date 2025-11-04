@@ -99,6 +99,8 @@ export const botConfigSchema = baseConfigSchema.extend({
   yookassaSecretKey: z.string().optional(),
   yookassaWebhookUrl: z.string().optional(),
   yookassaWebhookSecret: z.string().optional(),
+  // API URL for product card generation
+  apiBaseUrl: z.string().default('http://localhost:3000'),
   // AI providers
   groqApiKey: z.string().min(1, 'GROQ_API_KEY is required'),
   groqModel: z.string().default('llama-3.1-70b-versatile'),

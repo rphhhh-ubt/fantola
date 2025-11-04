@@ -9,6 +9,7 @@ import { AIService } from './services/ai-service';
 import { RateLimitTracker } from './services/rate-limit-tracker';
 import { ChatHandler } from './handlers/chat-handler';
 import { PhotoHandler } from './handlers/photo-handler';
+import { ProductCardHandler } from './handlers/product-card-handler';
 import { GroqClient } from './clients/groq-client';
 import { GeminiClient } from './clients/gemini-client';
 import { TokenService, db } from '@monorepo/shared';
@@ -45,6 +46,7 @@ export function createBot(
   redis: Redis,
   monitoring: Monitoring,
   aiConfig: AIConfig,
+  apiBaseUrl: string,
   channelId?: string,
   yookassaConfig?: YooKassaConfig
 ): Bot<BotContext> {
@@ -100,6 +102,11 @@ export function createBot(
     tokenService,
   });
 
+  const productCardHandler = new ProductCardHandler({
+    apiBaseUrl,
+    tokenService,
+  });
+
   // Set up session storage with Redis
   const sessionAdapter = new RedisSessionAdapter(redis, {
     prefix: 'bot:session:',
@@ -144,6 +151,7 @@ export function createBot(
   bot.use(async (ctx, next) => {
     ctx.chatHandler = chatHandler;
     ctx.photoHandler = photoHandler;
+    ctx.productCardHandler = productCardHandler;
     await next();
   });
 

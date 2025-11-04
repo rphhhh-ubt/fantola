@@ -40,6 +40,9 @@ export function getBotConfig(): BotConfig {
       yookassaWebhookUrl: process.env.YOOKASSA_WEBHOOK_URL,
       yookassaWebhookSecret: process.env.YOOKASSA_WEBHOOK_SECRET,
       
+      // API URL for product card generation
+      apiBaseUrl: process.env.API_BASE_URL,
+      
       // AI providers
       groqApiKey: process.env.GROQ_API_KEY,
       groqModel: process.env.GROQ_MODEL,

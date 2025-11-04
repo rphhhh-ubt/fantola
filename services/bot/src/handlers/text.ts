@@ -13,6 +13,12 @@ export async function handleTextMessage(ctx: BotContext): Promise<void> {
     return;
   }
 
+  // Check if we're in product card input workflow
+  if (ctx.session.productCardContext?.step === 'awaiting_input' && ctx.productCardHandler) {
+    await ctx.productCardHandler.handleOptionInput(ctx, text);
+    return;
+  }
+
   // Match button by comparing with all language variants
   if (isButtonMatch(text, buttons.productCard)) {
     await handleProductCard(ctx);
@@ -53,20 +59,24 @@ function isButtonMatch(text: string, buttonLabel: string): boolean {
 }
 
 async function handleProductCard(ctx: BotContext): Promise<void> {
-  const i18n = ctx.i18n;
-  const feature = i18n.features.productCard;
+  if (ctx.productCardHandler) {
+    await ctx.productCardHandler.handleStart(ctx);
+  } else {
+    const i18n = ctx.i18n;
+    const feature = i18n.features.productCard;
 
-  const message = [
-    feature.title,
-    '',
-    feature.description,
-    '',
-    ...feature.features,
-    feature.cost,
-    feature.comingSoon,
-  ].join('\n');
+    const message = [
+      feature.title,
+      '',
+      feature.description,
+      '',
+      ...feature.features,
+      feature.cost,
+      feature.comingSoon,
+    ].join('\n');
 
-  await ctx.reply(message, { parse_mode: 'Markdown' });
+    await ctx.reply(message, { parse_mode: 'Markdown' });
+  }
 }
 
 async function handleSoraImage(ctx: BotContext): Promise<void> {

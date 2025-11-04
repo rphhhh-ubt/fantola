@@ -5,6 +5,8 @@ import { ChannelVerificationService } from './services/channel-verification-serv
 import { PaymentService } from './services/payment-service';
 import { ChatHandler } from './handlers/chat-handler';
 import { PhotoHandler } from './handlers/photo-handler';
+import { ProductCardHandler } from './handlers/product-card-handler';
+import { ProductCardMode } from '@monorepo/shared';
 
 /**
  * Session data stored in Redis
@@ -25,6 +27,23 @@ export interface SessionData {
       content: string;
     }>;
   };
+  productCardContext?: {
+    step: 'awaiting_photo' | 'awaiting_mode' | 'awaiting_options' | 'awaiting_input' | 'editing' | 'completed';
+    productImage?: {
+      data: string;
+      mimeType: string;
+    };
+    mode?: ProductCardMode;
+    options?: {
+      background?: string;
+      pose?: string;
+      textHeadline?: string;
+      textSubheadline?: string;
+      textDescription?: string;
+    };
+    currentOption?: string;
+    generationId?: string;
+  };
 }
 
 /**
@@ -37,6 +56,7 @@ export interface BotContext extends Context, SessionFlavor<SessionData> {
   paymentService?: PaymentService;
   chatHandler?: ChatHandler;
   photoHandler?: PhotoHandler;
+  productCardHandler?: ProductCardHandler;
 }
 
 /**

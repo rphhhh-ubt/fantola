@@ -31,6 +31,12 @@ export class PhotoHandler {
       return;
     }
 
+    // Check if we're in product card workflow
+    if (ctx.session.productCardContext?.step === 'awaiting_photo' && ctx.productCardHandler) {
+      await ctx.productCardHandler.handlePhoto(ctx);
+      return;
+    }
+
     try {
       // Check if user can afford the operation
       const affordability = await this.tokenService.canAfford(user.id, OperationType.chatgpt_message);

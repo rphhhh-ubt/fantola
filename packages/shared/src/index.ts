@@ -19,6 +19,9 @@ export * from './chat';
 // Export image generation module
 export * from './image-generation';
 
+// Export product card module
+export * from './product-card';
+
 // Export utility functions
 export interface User {
   id: string;

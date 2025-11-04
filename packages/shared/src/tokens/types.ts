@@ -86,6 +86,7 @@ export interface RenewalEligibility {
 export const TOKEN_COSTS: Record<OperationType, number> = {
   image_generation: 10,
   sora_image: 10,
+  product_card: 10,
   chatgpt_message: 5,
   refund: 0,
   purchase: 0,

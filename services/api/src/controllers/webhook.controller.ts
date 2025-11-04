@@ -104,6 +104,7 @@ export class WebhookController {
 
   /**
    * Handle payment.succeeded event
+   * Idempotent: Multiple calls with same payment ID will only process once
    */
   private static async handlePaymentSucceeded(
     notification: YooKassaWebhookNotification,
@@ -122,6 +123,8 @@ export class WebhookController {
       return;
     }
 
+    // Idempotency is handled in processSuccessfulPayment via transaction
+    // It checks if payment is already succeeded and returns early
     const result = await paymentService.processSuccessfulPayment({
       paymentId: payment.id,
       userId,
@@ -131,6 +134,7 @@ export class WebhookController {
       metadata: {
         paymentMethod: payment.payment_method?.type,
         capturedAt: payment.captured_at,
+        webhookProcessedAt: new Date().toISOString(),
       },
     });
 
@@ -141,6 +145,7 @@ export class WebhookController {
           userId,
           tokensGranted: result.tokensGranted,
           subscriptionActivated: result.subscriptionActivated,
+          alreadyProcessed: (result as any).alreadyProcessed || false,
         },
         'Payment succeeded webhook processed'
       );

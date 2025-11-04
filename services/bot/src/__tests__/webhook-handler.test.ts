@@ -7,6 +7,7 @@ import { PaymentService } from '../services/payment-service';
 import { Monitoring } from '@monorepo/monitoring';
 import { Bot } from 'grammy';
 import { SubscriptionTier } from '@monorepo/database';
+import { BotContext } from '../types';
 
 describe('Webhook Handler', () => {
   describe('verifyWebhookSignature', () => {
@@ -41,7 +42,7 @@ describe('Webhook Handler', () => {
 
   describe('handleYooKassaWebhook', () => {
     let paymentService: PaymentService;
-    let bot: Bot;
+    let bot: Bot<BotContext>;
     let monitoring: Monitoring;
 
     beforeEach(() => {

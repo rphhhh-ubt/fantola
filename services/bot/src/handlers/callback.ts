@@ -2,6 +2,7 @@ import { CallbackQueryContext } from 'grammy';
 import { BotContext } from '../types';
 import { PaymentService } from '../services/payment-service';
 import { SubscriptionTier } from '@monorepo/database';
+import { ProductCardMode } from '@monorepo/shared';
 
 /**
  * Handle callback queries from inline keyboards
@@ -21,6 +22,12 @@ export async function handleCallbackQuery(
   if (data.startsWith('buy_tier:')) {
     const tier = data.split(':')[1] as SubscriptionTier;
     await handleTierPurchase(ctx, tier, paymentService);
+    return;
+  }
+
+  // Handle product card callbacks
+  if (data.startsWith('pc_')) {
+    await handleProductCardCallback(ctx, data);
     return;
   }
 
@@ -124,5 +131,84 @@ async function handleTierPurchase(
         ? '❌ Ошибка при создании платежа. Пожалуйста, попробуйте позже.'
         : '❌ Failed to create payment. Please try again later.'
     );
+  }
+}
+
+/**
+ * Handle product card callback
+ */
+async function handleProductCardCallback(
+  ctx: CallbackQueryContext<BotContext>,
+  data: string
+): Promise<void> {
+  await ctx.answerCallbackQuery();
+
+  if (!ctx.productCardHandler) {
+    await ctx.reply('Product card handler not available');
+    return;
+  }
+
+  // Mode selection
+  if (data === 'pc_mode_clean') {
+    await ctx.productCardHandler.handleModeSelection(ctx, ProductCardMode.CLEAN);
+    return;
+  }
+  if (data === 'pc_mode_infographics') {
+    await ctx.productCardHandler.handleModeSelection(ctx, ProductCardMode.INFOGRAPHICS);
+    return;
+  }
+
+  // Option selection
+  if (data === 'pc_opt_background') {
+    await ctx.productCardHandler.handleOptions(ctx, 'background');
+    return;
+  }
+  if (data === 'pc_opt_pose') {
+    await ctx.productCardHandler.handleOptions(ctx, 'pose');
+    return;
+  }
+  if (data === 'pc_opt_text') {
+    await ctx.productCardHandler.handleOptions(ctx, 'text');
+    return;
+  }
+
+  // Generate
+  if (data === 'pc_generate') {
+    await ctx.productCardHandler.handleGenerate(ctx);
+    return;
+  }
+
+  // Generate more
+  if (data.startsWith('pc_more_')) {
+    const generationId = data.replace('pc_more_', '');
+    await ctx.productCardHandler.handleGenerateMore(ctx, generationId);
+    return;
+  }
+
+  // Edit
+  if (data.startsWith('pc_edit_')) {
+    const generationId = data.replace('pc_edit_', '');
+    await ctx.productCardHandler.handleEdit(ctx, generationId);
+    return;
+  }
+
+  // Edit options
+  if (data === 'pc_edit_opt_background') {
+    await ctx.productCardHandler.handleOptions(ctx, 'background');
+    return;
+  }
+  if (data === 'pc_edit_opt_pose') {
+    await ctx.productCardHandler.handleOptions(ctx, 'pose');
+    return;
+  }
+  if (data === 'pc_edit_opt_text') {
+    await ctx.productCardHandler.handleOptions(ctx, 'text');
+    return;
+  }
+
+  // Apply edit
+  if (data === 'pc_edit_apply') {
+    await ctx.productCardHandler.handleEditApply(ctx);
+    return;
   }
 }

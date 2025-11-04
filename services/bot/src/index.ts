@@ -66,6 +66,7 @@ async function main() {
     redis,
     monitoring,
     aiConfig,
+    config.apiBaseUrl,
     config.telegramChannelId,
     yookassaConfig
   );

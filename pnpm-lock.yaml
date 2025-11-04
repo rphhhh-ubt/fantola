@@ -165,6 +165,10 @@ importers:
         version: 5.9.3
 
   packages/test-utils:
+    dependencies:
+      '@monorepo/shared':
+        specifier: workspace:*
+        version: link:../shared
     devDependencies:
       '@types/jest':
         specifier: ^30.0.0

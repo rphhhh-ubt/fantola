@@ -74,8 +74,9 @@ model User {
   lastName   String? @map("last_name") @db.VarChar(255)
 
   // Subscription fields
-  tier                 SubscriptionTier @default(Gift)
-  subscriptionExpiresAt DateTime?       @map("subscription_expires_at") @db.Timestamptz
+  tier                  SubscriptionTier @default(Gift)
+  subscriptionExpiresAt DateTime?        @map("subscription_expires_at") @db.Timestamptz
+  autoRenew             Boolean          @default(false) @map("auto_renew")
 
   // Token billing fields
   tokensBalance Int @default(0) @map("tokens_balance")
@@ -127,12 +128,15 @@ model SubscriptionHistory {
   id        String   @id @default(uuid()) @db.Uuid
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
 
-  userId        String           @map("user_id") @db.Uuid
-  tier          SubscriptionTier
-  priceRubles   Int?             @map("price_rubles")
-  paymentMethod String?          @map("payment_method") @db.VarChar(50)
-  startedAt     DateTime         @map("started_at") @db.Timestamptz
-  expiresAt     DateTime?        @map("expires_at") @db.Timestamptz
+  userId            String           @map("user_id") @db.Uuid
+  tier              SubscriptionTier
+  priceRubles       Int?             @map("price_rubles")
+  paymentMethod     String?          @map("payment_method") @db.VarChar(50)
+  startedAt         DateTime         @map("started_at") @db.Timestamptz
+  expiresAt         DateTime?        @map("expires_at") @db.Timestamptz
+  canceledAt        DateTime?        @map("canceled_at") @db.Timestamptz
+  cancellationReason String?         @map("cancellation_reason") @db.Text
+  autoRenew         Boolean          @default(false) @map("auto_renew")
 
   // Optional metadata
   metadata Json?

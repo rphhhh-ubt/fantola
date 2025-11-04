@@ -7,6 +7,9 @@ export * from './queue';
 // Export token accounting module
 export * from './tokens';
 
+// Export subscription management module
+export * from './subscriptions';
+
 // Export utility functions
 export interface User {
   id: string;

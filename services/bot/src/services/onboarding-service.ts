@@ -1,5 +1,6 @@
 import { db } from '@monorepo/shared';
 import { SubscriptionTier, OperationType, User } from '@monorepo/database';
+import { I18n } from '../i18n';
 
 export interface OnboardingResult {
   user: User;
@@ -94,7 +95,7 @@ export async function awardGiftTokens(userId: string, amount: number): Promise<U
 /**
  * Process user onboarding - handles both new and returning users
  */
-export async function processUserOnboarding(user: User): Promise<OnboardingResult> {
+export async function processUserOnboarding(user: User, i18n: I18n): Promise<OnboardingResult> {
   const isNewUser = !user.lastGiftClaimAt && user.tier === SubscriptionTier.Gift;
   
   if (isNewUser) {
@@ -105,7 +106,7 @@ export async function processUserOnboarding(user: User): Promise<OnboardingResul
       user: updatedUser,
       isNewUser: true,
       tokensAwarded: giftAmount,
-      message: buildWelcomeMessage(updatedUser, giftAmount),
+      message: buildWelcomeMessage(updatedUser, giftAmount, i18n),
     };
   }
 
@@ -119,7 +120,7 @@ export async function processUserOnboarding(user: User): Promise<OnboardingResul
       user: updatedUser,
       isNewUser: false,
       tokensAwarded: giftAmount,
-      message: buildMonthlyRenewalMessage(updatedUser, giftAmount),
+      message: buildMonthlyRenewalMessage(updatedUser, giftAmount, i18n),
     };
   }
 
@@ -127,73 +128,65 @@ export async function processUserOnboarding(user: User): Promise<OnboardingResul
     user,
     isNewUser: false,
     tokensAwarded: 0,
-    message: buildReturningUserMessage(user),
+    message: buildReturningUserMessage(user, i18n),
   };
 }
 
 /**
  * Build welcome message for new users
  */
-function buildWelcomeMessage(user: User, tokensAwarded: number): string {
-  return `
-🎉 *Welcome to AI Bot!*
+function buildWelcomeMessage(user: User, tokensAwarded: number, i18n: I18n): string {
+  const messages = [
+    i18n.commands.start.welcome,
+    '',
+    ...i18n.commands.start.features,
+    '',
+    i18n.t('commands.start.newUser', { tokens: tokensAwarded }),
+  ];
 
-Hello ${user.firstName || 'there'}! Your account has been created successfully.
+  if (user.tier === SubscriptionTier.Gift) {
+    messages.push(i18n.t('commands.start.channelSubscription', { channel: '@your_channel' }));
+  }
 
-✨ *You've received ${tokensAwarded} free tokens!*
-
-🎯 *What you can do:*
-• 🎨 Generate images with DALL-E (10 tokens)
-• 🎬 Create videos with Sora (10 tokens)
-• 💬 Chat with GPT-4 (5 tokens per message)
-
-📋 *Your Current Plan:* ${user.tier}
-💰 *Token Balance:* ${user.tokensBalance}
-
-${user.tier === SubscriptionTier.Gift ? '\n⚠️ *Important:* To use the free tier, you need to subscribe to our channel.\nUse /subscription to learn more and subscribe.' : ''}
-
-Use the menu below to get started! 👇
-`.trim();
+  return messages.join('\n');
 }
 
 /**
  * Build message for monthly token renewal
  */
-function buildMonthlyRenewalMessage(user: User, tokensAwarded: number): string {
-  return `
-🎁 *Monthly Tokens Renewed!*
+function buildMonthlyRenewalMessage(user: User, tokensAwarded: number, i18n: I18n): string {
+  const messages = [
+    i18n.commands.start.welcome,
+    '',
+    i18n.t('commands.start.monthlyRenewal', { tokens: tokensAwarded }),
+  ];
 
-Welcome back, ${user.firstName || 'there'}!
+  if (user.tier === SubscriptionTier.Gift) {
+    messages.push('');
+    messages.push(i18n.t('commands.start.channelSubscription', { channel: '@your_channel' }));
+  }
 
-You've received your monthly ${tokensAwarded} tokens! 🎉
-
-📋 *Your Current Plan:* ${user.tier}
-💰 *Token Balance:* ${user.tokensBalance}
-
-${user.tier === SubscriptionTier.Gift ? '\n⚠️ *Remember:* Make sure you\'re subscribed to our channel to continue using the free tier.' : ''}
-
-Ready to create something amazing? 🚀
-`.trim();
+  return messages.join('\n');
 }
 
 /**
  * Build message for returning users (no token award)
  */
-function buildReturningUserMessage(user: User): string {
+function buildReturningUserMessage(user: User, i18n: I18n): string {
   const daysUntilRenewal = user.lastGiftClaimAt 
     ? 30 - Math.floor((new Date().getTime() - new Date(user.lastGiftClaimAt).getTime()) / (1000 * 60 * 60 * 24))
     : 0;
 
-  return `
-👋 *Welcome back, ${user.firstName || 'there'}!*
+  const messages = [
+    i18n.commands.start.welcome,
+    '',
+    ...i18n.commands.start.features,
+  ];
 
-📋 *Your Current Plan:* ${user.tier}
-💰 *Token Balance:* ${user.tokensBalance}
+  if (user.tier === SubscriptionTier.Gift && daysUntilRenewal > 0) {
+    messages.push('');
+    messages.push(i18n.t('commands.start.nextRenewal', { days: daysUntilRenewal }));
+  }
 
-${user.tier === SubscriptionTier.Gift ? `\n🎁 *Next monthly tokens:* ${daysUntilRenewal} days\n⚠️ *Remember:* Keep your channel subscription active to continue using the free tier.` : ''}
-
-${user.tokensBalance === 0 ? '\n💎 Running low on tokens? Check out /subscription for upgrade options!' : ''}
-
-Use the menu below to continue! 👇
-`.trim();
+  return messages.join('\n');
 }

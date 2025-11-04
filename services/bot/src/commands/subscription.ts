@@ -8,48 +8,24 @@ import { buildSubscriptionKeyboard } from '../keyboards';
  */
 export async function handleSubscription(ctx: CommandContext<BotContext>): Promise<void> {
   const user = ctx.user;
+  const i18n = ctx.i18n;
 
   if (!user) {
-    await ctx.reply('Unable to load subscription info. Please try again.');
+    await ctx.reply(i18n.common.profileError);
     return;
   }
 
-  const subscriptionMessage = `
-💎 *Subscription Plans*
-
-*Current Plan:* ${user.tier}
-*Available Tokens:* ${user.tokensBalance}
-
-📦 *Available Plans*
-
-*🎁 Gift (Free)*
-• 100 tokens/month
-• Basic features
-• Requires channel subscription
-
-*💎 Professional*
-• 2000 tokens/month
-• All AI models
-• Priority support
-• Price: 1990₽/month
-
-*🏢 Business*
-• 10000 tokens/month
-• All features
-• Highest priority
-• Advanced analytics
-• Price: 3490₽/month
-
-🪙 *Token Costs*
-• Image Generation: 10 tokens
-• Sora Image: 10 tokens
-• ChatGPT Message: 5 tokens
-
-Select a plan below to upgrade or manage your subscription:
-  `.trim();
+  const subscriptionMessage = [
+    i18n.commands.subscription.title,
+    i18n.t('commands.subscription.currentPlan', { tier: user.tier }),
+    i18n.commands.subscription.plans.gift,
+    i18n.commands.subscription.plans.professional,
+    i18n.commands.subscription.plans.business,
+    i18n.commands.subscription.upgrade,
+  ].join('\n');
 
   await ctx.reply(subscriptionMessage, {
     parse_mode: 'Markdown',
-    reply_markup: buildSubscriptionKeyboard(),
+    reply_markup: buildSubscriptionKeyboard(i18n),
   });
 }

@@ -8,6 +8,7 @@ import {
   authMiddleware,
   createErrorHandler,
   loggingMiddleware,
+  i18nMiddleware,
 } from './middleware';
 import {
   handleStart,
@@ -47,6 +48,9 @@ export function createBot(
 
   // Logging middleware
   bot.use(loggingMiddleware(monitoring));
+
+  // I18n middleware - must come after session but before auth
+  bot.use(i18nMiddleware);
 
   // Auth middleware - loads user from database
   bot.use(authMiddleware());

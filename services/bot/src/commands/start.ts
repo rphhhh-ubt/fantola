@@ -13,15 +13,16 @@ export async function handleStart(
   monitoring: Monitoring
 ): Promise<void> {
   const user = ctx.user;
+  const i18n = ctx.i18n;
   
   if (!user) {
-    await ctx.reply('Unable to identify user. Please try again.');
+    await ctx.reply(i18n.common.error);
     return;
   }
 
   try {
     // Process onboarding (awards tokens if eligible)
-    const onboardingResult = await processUserOnboarding(user);
+    const onboardingResult = await processUserOnboarding(user, i18n);
 
     // Track active user KPI
     monitoring.trackKPI({
@@ -50,7 +51,7 @@ export async function handleStart(
 
     await ctx.reply(onboardingResult.message, {
       parse_mode: 'Markdown',
-      reply_markup: buildMainMenuKeyboard(),
+      reply_markup: buildMainMenuKeyboard(i18n),
     });
   } catch (error) {
     monitoring.handleError(error as Error, {
@@ -58,9 +59,8 @@ export async function handleStart(
       userId: user.id,
     });
 
-    await ctx.reply(
-      'An error occurred during onboarding. Please try again later.',
-      { reply_markup: buildMainMenuKeyboard() }
-    );
+    await ctx.reply(i18n.common.error, {
+      reply_markup: buildMainMenuKeyboard(i18n),
+    });
   }
 }

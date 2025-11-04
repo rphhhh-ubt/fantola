@@ -27,6 +27,13 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 
+# Create storage directories with proper permissions
+RUN mkdir -p /var/www/storage/uploads \
+  /var/www/storage/generated \
+  /var/www/storage/processed && \
+  chown -R node:node /var/www/storage && \
+  chmod -R 755 /var/www/storage
+
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY packages/config/package.json ./packages/config/
 COPY packages/shared/package.json ./packages/shared/
@@ -39,5 +46,7 @@ COPY --from=build /app/packages/shared/dist ./packages/shared/dist
 COPY --from=build /app/services/api/dist ./services/api/dist
 
 EXPOSE 3000
+
+USER node
 
 CMD ["node", "services/api/dist/index.js"]

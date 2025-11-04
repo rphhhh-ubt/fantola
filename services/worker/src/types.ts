@@ -45,14 +45,6 @@ export interface ImageProcessingResult {
   error?: string;
 }
 
-export interface StorageConfig {
-  bucket: string;
-  region: string;
-  endpoint?: string;
-  accessKeyId?: string;
-  secretAccessKey?: string;
-}
-
 export interface ProcessingMetrics {
   processingTimeMs: number;
   originalSize: number;

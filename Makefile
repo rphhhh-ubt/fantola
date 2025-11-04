@@ -1,7 +1,7 @@
 .PHONY: help install build dev clean lint typecheck test test-watch test-coverage test-ci test-docker
-.PHONY: docker-build docker-up docker-down docker-deploy docker-logs
+.PHONY: docker-build docker-up docker-down docker-deploy docker-logs docker-up-nginx
 .PHONY: fly-deploy railway-deploy
-.PHONY: db-migrate db-backup db-restore storage-backup
+.PHONY: db-migrate db-backup db-restore storage-backup storage-restore storage-clean storage-init
 .PHONY: setup-webhooks scale-workers
 
 help:
@@ -25,6 +25,7 @@ help:
     @echo "Docker Commands:"
     @echo "  make docker-build     - Build Docker images"
     @echo "  make docker-up        - Start services with Docker Compose"
+    @echo "  make docker-up-nginx  - Start services with Nginx CDN"
     @echo "  make docker-down      - Stop services with Docker Compose"
     @echo "  make docker-deploy    - Deploy with Docker Compose (production)"
     @echo "  make docker-logs      - View Docker logs"
@@ -39,7 +40,10 @@ help:
     @echo "  make db-restore FILE=<backup.sql.gz> - Restore database from backup"
     @echo ""
     @echo "Storage:"
-    @echo "  make storage-backup   - Backup S3/storage"
+    @echo "  make storage-init     - Initialize storage directories"
+    @echo "  make storage-backup   - Backup storage volumes"
+    @echo "  make storage-restore FILE=<backup.tar.gz> - Restore storage from backup"
+    @echo "  make storage-clean    - Clean storage volumes"
     @echo ""
     @echo "Operations:"
     @echo "  make setup-webhooks   - Setup Telegram and YooKassa webhooks"
@@ -90,6 +94,11 @@ docker-up:
     docker compose -f docker-compose.yml up -d
     @echo "✅ Services started!"
 
+docker-up-nginx:
+    @echo "🐳 Starting services with Nginx CDN..."
+    docker compose -f docker-compose.yml -f docker-compose.nginx.yml up -d
+    @echo "✅ Services started with Nginx!"
+
 docker-down:
     @echo "🐳 Stopping services..."
     docker compose -f docker-compose.yml down
@@ -128,9 +137,47 @@ db-restore:
     ./scripts/backup/restore-db.sh $(FILE)
 
 # Storage commands
+storage-init:
+    @echo "📁 Initializing storage directories..."
+    @docker volume create monorepo_storage_uploads || true
+    @docker volume create monorepo_storage_generated || true
+    @docker volume create monorepo_storage_processed || true
+    @echo "✅ Storage volumes created!"
+
 storage-backup:
-    @echo "☁️  Backing up storage..."
-    ./scripts/backup/backup-storage.sh
+    @echo "☁️  Backing up storage volumes..."
+    @mkdir -p ./backups/storage
+    @docker run --rm \
+        -v monorepo_storage_uploads:/uploads:ro \
+        -v monorepo_storage_generated:/generated:ro \
+        -v monorepo_storage_processed:/processed:ro \
+        -v $(PWD)/backups/storage:/backup \
+        alpine sh -c "tar czf /backup/storage-$(shell date +%Y%m%d-%H%M%S).tar.gz -C / uploads generated processed"
+    @echo "✅ Storage backup completed!"
+
+storage-restore:
+    @if [ -z "$(FILE)" ]; then \
+        echo "❌ Please specify backup file: make storage-restore FILE=<backup.tar.gz>"; \
+        exit 1; \
+    fi
+    @echo "📥 Restoring storage from $(FILE)..."
+    @docker run --rm \
+        -v monorepo_storage_uploads:/uploads \
+        -v monorepo_storage_generated:/generated \
+        -v monorepo_storage_processed:/processed \
+        -v $(PWD)/backups/storage:/backup:ro \
+        alpine tar xzf /backup/$(notdir $(FILE)) -C /
+    @echo "✅ Storage restored!"
+
+storage-clean:
+    @echo "🧹 Cleaning storage volumes..."
+    @read -p "Are you sure you want to delete all storage data? [y/N] " -n 1 -r; \
+    if [[ $REPLY =~ ^[Yy]$ ]]; then \
+        docker volume rm monorepo_storage_uploads monorepo_storage_generated monorepo_storage_processed || true; \
+        echo "\n✅ Storage volumes cleaned!"; \
+    else \
+        echo "\n❌ Cancelled"; \
+    fi
 
 # Operations commands
 setup-webhooks:

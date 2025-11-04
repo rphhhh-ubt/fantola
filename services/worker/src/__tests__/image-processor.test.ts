@@ -1,7 +1,8 @@
 import { ImageProcessor } from '../processors/image-processor';
 import { Monitoring } from '@monorepo/monitoring';
 import { MockS3Client } from '@monorepo/test-utils';
-import { ImageTool, ImageQualityVariant, ImageProcessingJob, StorageConfig } from '../types';
+import { ImageTool, ImageQualityVariant, ImageProcessingJob } from '../types';
+import { StorageConfig } from '../storage';
 import { getQualityPreset } from '../config/quality-presets';
 import sharp from 'sharp';
 
@@ -29,11 +30,14 @@ const createMockBuffer = async (width: number, height: number): Promise<Buffer> 
 };
 
 const mockStorageConfig: StorageConfig = {
-  bucket: 'test-bucket',
-  region: 'us-east-1',
-  endpoint: 'http://localhost:9000',
-  accessKeyId: 'test-key',
-  secretAccessKey: 'test-secret',
+  type: 's3',
+  s3: {
+    bucket: 'test-bucket',
+    region: 'us-east-1',
+    endpoint: 'http://localhost:9000',
+    accessKeyId: 'test-key',
+    secretAccessKey: 'test-secret',
+  },
 };
 
 describe('ImageProcessor', () => {

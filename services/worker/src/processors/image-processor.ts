@@ -1,34 +1,23 @@
 import sharp from 'sharp';
-import { S3Client, PutObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
 import { Monitoring } from '@monorepo/monitoring';
 import {
   ImageProcessingJob,
   ImageProcessingResult,
   ProcessingResult,
   ImageQualityVariant,
-  StorageConfig,
   ProcessingMetrics,
 } from '../types';
 import { getQualityPreset } from '../config/quality-presets';
+import { StorageAdapter, StorageConfig } from '../storage';
+import { StorageFactory } from '../storage/storage-factory';
 
 export class ImageProcessor {
-  private s3Client: S3Client;
+  private storage: StorageAdapter;
   private monitoring: Monitoring;
-  private storageConfig: StorageConfig;
 
   constructor(storageConfig: StorageConfig, monitoring: Monitoring) {
-    this.storageConfig = storageConfig;
+    this.storage = StorageFactory.createAdapter(storageConfig);
     this.monitoring = monitoring;
-    this.s3Client = new S3Client({
-      region: storageConfig.region,
-      endpoint: storageConfig.endpoint,
-      credentials: storageConfig.accessKeyId && storageConfig.secretAccessKey
-        ? {
-            accessKeyId: storageConfig.accessKeyId,
-            secretAccessKey: storageConfig.secretAccessKey,
-          }
-        : undefined,
-    });
   }
 
   async processImage(job: ImageProcessingJob): Promise<ImageProcessingResult> {
@@ -133,24 +122,9 @@ export class ImageProcessor {
       return job.sourceBuffer;
     }
 
-    if (job.sourcePath && job.sourcePath.startsWith('s3://')) {
-      const key = job.sourcePath.replace(`s3://${this.storageConfig.bucket}/`, '');
-      const command = new GetObjectCommand({
-        Bucket: this.storageConfig.bucket,
-        Key: key,
-      });
-
-      const response = await this.s3Client.send(command);
-      const chunks: Uint8Array[] = [];
-
-      if (response.Body) {
-        const stream = response.Body as AsyncIterable<Uint8Array>;
-        for await (const chunk of stream) {
-          chunks.push(chunk);
-        }
-      }
-
-      return Buffer.concat(chunks);
+    if (job.sourcePath) {
+      const key = job.sourcePath.replace(/^(s3:\/\/[^/]+\/|local:\/\/)/, '');
+      return await this.storage.download(key);
     }
 
     if (job.sourceUrl) {
@@ -221,20 +195,7 @@ export class ImageProcessor {
     buffer: Buffer,
     contentType: string
   ): Promise<string> {
-    const command = new PutObjectCommand({
-      Bucket: this.storageConfig.bucket,
-      Key: key,
-      Body: buffer,
-      ContentType: `image/${contentType}`,
-    });
-
-    await this.s3Client.send(command);
-
-    if (this.storageConfig.endpoint) {
-      return `${this.storageConfig.endpoint}/${this.storageConfig.bucket}/${key}`;
-    }
-
-    return `https://${this.storageConfig.bucket}.s3.${this.storageConfig.region}.amazonaws.com/${key}`;
+    return await this.storage.upload(key, buffer, `image/${contentType}`);
   }
 
   private trackProcessingMetrics(metrics: ProcessingMetrics): void {

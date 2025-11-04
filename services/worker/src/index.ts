@@ -3,6 +3,7 @@ import { formatDate } from '@monorepo/shared';
 import { Monitoring } from '@monorepo/monitoring';
 import { ImageProcessor } from './processors/image-processor';
 import { ImageTool, ImageProcessingJob } from './types';
+import { StorageConfig } from './storage';
 
 async function main() {
   const config = getConfig();
@@ -30,16 +31,26 @@ async function main() {
     'Processing jobs started'
   );
 
-  const imageProcessor = new ImageProcessor(
-    {
+  const storageType = (process.env.STORAGE_TYPE || 's3') as 'local' | 's3';
+  const storageConfig: StorageConfig = {
+    type: storageType,
+    baseUrl: process.env.STORAGE_BASE_URL || 'http://localhost/static',
+    localBasePath: process.env.STORAGE_LOCAL_PATH || '/var/www/storage',
+    s3: {
       bucket: process.env.S3_BUCKET || 'image-processing',
       region: process.env.S3_REGION || 'us-east-1',
       endpoint: process.env.S3_ENDPOINT,
       accessKeyId: process.env.S3_ACCESS_KEY_ID,
       secretAccessKey: process.env.S3_SECRET_ACCESS_KEY,
     },
-    monitoring
+  };
+
+  monitoring.logger.info(
+    { storageType, baseUrl: storageConfig.baseUrl },
+    'Storage configuration initialized'
   );
+
+  const imageProcessor = new ImageProcessor(storageConfig, monitoring);
 
   await simulateJobProcessing(monitoring, imageProcessor);
 }

@@ -4,7 +4,7 @@ import Redis from 'ioredis';
 import { BotContext, SessionData, BotInitConfig } from './types';
 import { RedisSessionAdapter } from './session-adapter';
 import { Monitoring } from '@monorepo/monitoring';
-import { ChannelVerificationService } from './services/channel-verification-service';
+import { ChannelVerificationService, PaymentService, YooKassaConfig } from './services';
 import {
   authMiddleware,
   createErrorHandler,
@@ -17,7 +17,7 @@ import {
   handleProfile,
   handleSubscription,
 } from './commands';
-import { handleTextMessage } from './handlers';
+import { handleTextMessage, handleCallbackQuery } from './handlers';
 
 /**
  * Initialize and configure Grammy bot with all middleware and handlers
@@ -26,13 +26,19 @@ export function createBot(
   token: string,
   redis: Redis,
   monitoring: Monitoring,
-  channelId?: string
+  channelId?: string,
+  yookassaConfig?: YooKassaConfig
 ): Bot<BotContext> {
   const bot = new Bot<BotContext>(token);
 
   // Initialize channel verification service if channel ID is provided
   const channelVerification = channelId
     ? new ChannelVerificationService(bot, redis, monitoring, { channelId })
+    : undefined;
+
+  // Initialize payment service if YooKassa config is provided
+  const paymentService = yookassaConfig
+    ? new PaymentService(yookassaConfig, monitoring)
     : undefined;
 
   // Set up session storage with Redis
@@ -67,6 +73,14 @@ export function createBot(
     });
   }
 
+  // Inject payment service into context
+  if (paymentService) {
+    bot.use(async (ctx, next) => {
+      ctx.paymentService = paymentService;
+      await next();
+    });
+  }
+
   // Auth middleware - loads user from database
   bot.use(authMiddleware());
 
@@ -75,6 +89,11 @@ export function createBot(
   bot.command('help', (ctx) => handleHelp(ctx));
   bot.command('profile', (ctx) => handleProfile(ctx));
   bot.command('subscription', (ctx) => handleSubscription(ctx));
+
+  // Handle callback queries (inline keyboard button presses)
+  if (paymentService) {
+    bot.on('callback_query:data', (ctx) => handleCallbackQuery(ctx, paymentService));
+  }
 
   // Handle text messages (keyboard buttons)
   bot.on('message:text', handleTextMessage);

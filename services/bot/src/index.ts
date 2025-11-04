@@ -42,8 +42,23 @@ async function main() {
     monitoring.logger.info('Redis connected');
   });
 
-  // Initialize bot with optional channel verification
-  const bot = createBot(config.telegramBotToken, redis, monitoring, config.telegramChannelId);
+  // Initialize bot with optional channel verification and payment service
+  const yookassaConfig =
+    config.yookassaShopId && config.yookassaSecretKey
+      ? {
+          shopId: config.yookassaShopId,
+          secretKey: config.yookassaSecretKey,
+          returnUrl: 'https://t.me/your_bot',
+        }
+      : undefined;
+
+  const bot = createBot(
+    config.telegramBotToken,
+    redis,
+    monitoring,
+    config.telegramChannelId,
+    yookassaConfig
+  );
 
   // Determine bot mode (polling for dev, webhook for prod)
   const botMode: BotMode = config.nodeEnv === 'development' ? 'polling' : 'webhook';

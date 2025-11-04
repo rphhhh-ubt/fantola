@@ -11,3 +11,10 @@ export {
   type ChannelMembershipResult,
   type ChannelVerificationConfig,
 } from './channel-verification-service';
+
+export {
+  PaymentService,
+  type YooKassaConfig,
+  type PaymentCreationResult,
+  type PaymentConfirmationResult,
+} from './payment-service';

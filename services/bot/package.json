@@ -17,7 +17,12 @@
   "dependencies": {
     "@monorepo/config": "workspace:*",
     "@monorepo/shared": "workspace:*",
-    "@monorepo/monitoring": "workspace:*"
+    "@monorepo/monitoring": "workspace:*",
+    "@monorepo/database": "workspace:*",
+    "@monorepo/rate-limit": "workspace:*",
+    "grammy": "^1.32.0",
+    "@grammyjs/runner": "^2.0.3",
+    "ioredis": "^5.4.2"
   },
   "devDependencies": {
     "@monorepo/test-utils": "workspace:*",

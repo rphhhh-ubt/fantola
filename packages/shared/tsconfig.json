@@ -9,6 +9,9 @@
   "references": [
     {
       "path": "../database"
+    },
+    {
+      "path": "../test-utils"
     }
   ]
 }

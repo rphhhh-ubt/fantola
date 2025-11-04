@@ -16,6 +16,9 @@ export * from './yookassa';
 // Export chat module
 export * from './chat';
 
+// Export image generation module
+export * from './image-generation';
+
 // Export utility functions
 export interface User {
   id: string;

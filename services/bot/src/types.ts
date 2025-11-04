@@ -19,6 +19,11 @@ export interface SessionData {
     lastCommand?: string;
     lastPrompt?: string;
     messageCount?: number;
+    conversationId?: string;
+    history?: Array<{
+      role: 'user' | 'assistant' | 'system';
+      content: string;
+    }>;
   };
 }
 

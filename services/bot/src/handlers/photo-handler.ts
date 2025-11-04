@@ -1,7 +1,8 @@
 import { BotContext } from '../types';
 import { AIService } from '../services/ai-service';
 import { TokenService } from '@monorepo/shared';
-import { OperationType } from '@monorepo/database';
+import { OperationType, db } from '@monorepo/database';
+import { v4 as uuidv4 } from 'uuid';
 import axios from 'axios';
 
 export interface PhotoHandlerConfig {
@@ -86,6 +87,9 @@ export class PhotoHandler {
         },
       ];
 
+      // Get or create conversation ID
+      const conversationId = ctx.session.conversationContext?.conversationId || uuidv4();
+
       // Send request to AI service (Gemini Vision)
       const response = await this.aiService.chatWithVision(messages, images);
 
@@ -97,14 +101,63 @@ export class PhotoHandler {
           model: response.model,
           prompt: caption,
           hasImage: true,
+          conversationId,
         },
       });
 
-      // Update conversation context
+      // Log user message with image to database
+      await db.chatMessage.create({
+        data: {
+          userId: user.id,
+          role: 'user',
+          content: caption,
+          conversationId,
+          tokensUsed: affordability.cost,
+          metadata: {
+            provider: response.provider,
+            model: response.model,
+            hasImage: true,
+          },
+        },
+      });
+
+      // Log assistant message to database
+      await db.chatMessage.create({
+        data: {
+          userId: user.id,
+          role: 'assistant',
+          content: response.content,
+          model: response.model,
+          conversationId,
+          metadata: {
+            provider: response.provider,
+            vision: true,
+          },
+        },
+      });
+
+      // Get conversation history from session
+      const conversationHistory = ctx.session.conversationContext?.history || [];
+
+      // Update conversation context in session
+      const updatedHistory = [
+        ...conversationHistory.slice(-10),
+        {
+          role: 'user' as const,
+          content: `[Image] ${caption}`,
+        },
+        {
+          role: 'assistant' as const,
+          content: response.content,
+        },
+      ];
+
       ctx.session.conversationContext = {
         lastCommand: 'vision',
         lastPrompt: response.content,
         messageCount: (ctx.session.conversationContext?.messageCount || 0) + 1,
+        conversationId,
+        history: updatedHistory,
       };
 
       // Send response

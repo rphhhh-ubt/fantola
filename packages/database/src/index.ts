@@ -2,7 +2,7 @@
 export * from '@prisma/client';
 
 // Export database utilities
-export { createPrismaClient } from './client';
+export { createPrismaClient, db } from './client';
 export { seedDatabase } from './seed';
 
 // Export type helpers

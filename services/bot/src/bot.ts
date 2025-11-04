@@ -23,6 +23,8 @@ import {
   handleHelp,
   handleProfile,
   handleSubscription,
+  handleChat,
+  handleChatClear,
 } from './commands';
 import { handleTextMessage, handleCallbackQuery } from './handlers';
 
@@ -153,6 +155,8 @@ export function createBot(
   bot.command('help', (ctx) => handleHelp(ctx));
   bot.command('profile', (ctx) => handleProfile(ctx));
   bot.command('subscription', (ctx) => handleSubscription(ctx));
+  bot.command('chat', (ctx) => handleChat(ctx));
+  bot.command('chatclear', (ctx) => handleChatClear(ctx));
 
   // Handle callback queries (inline keyboard button presses)
   if (paymentService) {

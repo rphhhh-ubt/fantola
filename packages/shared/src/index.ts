@@ -13,6 +13,9 @@ export * from './subscriptions';
 // Export YooKassa integration module
 export * from './yookassa';
 
+// Export chat module
+export * from './chat';
+
 // Export utility functions
 export interface User {
   id: string;

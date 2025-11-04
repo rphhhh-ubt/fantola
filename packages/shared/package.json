@@ -14,7 +14,9 @@
     "test:coverage": "jest --coverage"
   },
   "dependencies": {
-    "@monorepo/database": "workspace:*"
+    "@monorepo/database": "workspace:*",
+    "bullmq": "^5.32.2",
+    "ioredis": "^5.3.2"
   },
   "devDependencies": {
     "@types/jest": "^30.0.0",

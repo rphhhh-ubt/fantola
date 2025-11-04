@@ -58,6 +58,20 @@ export const RETRY_CONFIGS: Record<string, { attempts: number; backoff: { type: 
       delay: 5000,
     },
   },
+  'sora-generation': {
+    attempts: 3,
+    backoff: {
+      type: 'exponential',
+      delay: 5000,
+    },
+  },
+  'product-card-generation': {
+    attempts: 3,
+    backoff: {
+      type: 'exponential',
+      delay: 5000,
+    },
+  },
 };
 
 /**
@@ -192,6 +206,8 @@ export const JOB_TIMEOUTS: Record<string, number> = {
   'payment-processing': 60 * 1000, // 1 minute
   'notification': 10 * 1000, // 10 seconds
   'subscription-renewal': 30 * 1000, // 30 seconds
+  'sora-generation': 10 * 60 * 1000, // 10 minutes
+  'product-card-generation': 5 * 60 * 1000, // 5 minutes
 };
 
 /**
@@ -211,6 +227,8 @@ export const RATE_LIMITS: Record<string, { max: number; duration: number }> = {
   'payment-processing': { max: 20, duration: 1000 },
   'notification': { max: 100, duration: 1000 },
   'subscription-renewal': { max: 10, duration: 1000 },
+  'sora-generation': { max: 5, duration: 1000 },
+  'product-card-generation': { max: 10, duration: 1000 },
 };
 
 /**
@@ -218,4 +236,24 @@ export const RATE_LIMITS: Record<string, { max: number; duration: number }> = {
  */
 export function getRateLimit(queueName: string): { max: number; duration: number } | undefined {
   return RATE_LIMITS[queueName];
+}
+
+/**
+ * Map subscription tier to job priority
+ */
+export function getTierPriority(tier: string): JobPriority {
+  const tierPriorityMap: Record<string, JobPriority> = {
+    'Business': JobPriority.HIGH,
+    'Professional': JobPriority.NORMAL,
+    'Gift': JobPriority.LOW,
+  };
+
+  return tierPriorityMap[tier] || JobPriority.NORMAL;
+}
+
+/**
+ * Check if tier should get priority boost
+ */
+export function shouldBoostPriority(tier: string): boolean {
+  return tier === 'Business';
 }

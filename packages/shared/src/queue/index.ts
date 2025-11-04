@@ -18,3 +18,9 @@ export * from './producer';
 
 // Export consumer
 export * from './consumer';
+
+// Export generation helpers
+export * from './generation-helpers';
+
+// Export events
+export * from './events';

@@ -11,7 +11,7 @@ build/
 .env
 .env.local
 .env.*.local
-.env.test
+# Note: .env.development and .env.test are tracked as examples
 
 # Logs
 logs/

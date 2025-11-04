@@ -1,4 +1,4 @@
-import { getConfig } from '@monorepo/config';
+import { getWorkerConfig } from '@monorepo/config';
 import { formatDate } from '@monorepo/shared';
 import { Monitoring } from '@monorepo/monitoring';
 import { ImageProcessor } from './processors/image-processor';
@@ -6,7 +6,7 @@ import { ImageTool, ImageProcessingJob } from './types';
 import { StorageConfig } from './storage';
 
 async function main() {
-  const config = getConfig();
+  const config = getWorkerConfig();
 
   const monitoring = new Monitoring({
     service: 'worker',
@@ -22,6 +22,9 @@ async function main() {
       environment: config.nodeEnv,
       metricsPort: config.metricsPort,
       metricsEnabled: config.enableMetrics,
+      workerConcurrency: config.workerConcurrency,
+      workerReplicas: config.workerReplicas,
+      storageType: config.storageType,
     },
     'Worker service started'
   );
@@ -31,22 +34,21 @@ async function main() {
     'Processing jobs started'
   );
 
-  const storageType = (process.env.STORAGE_TYPE || 's3') as 'local' | 's3';
   const storageConfig: StorageConfig = {
-    type: storageType,
-    baseUrl: process.env.STORAGE_BASE_URL || 'http://localhost/static',
-    localBasePath: process.env.STORAGE_LOCAL_PATH || '/var/www/storage',
+    type: config.storageType,
+    baseUrl: config.storageBaseUrl,
+    localBasePath: config.storageLocalPath,
     s3: {
-      bucket: process.env.S3_BUCKET || 'image-processing',
-      region: process.env.S3_REGION || 'us-east-1',
-      endpoint: process.env.S3_ENDPOINT,
-      accessKeyId: process.env.S3_ACCESS_KEY_ID,
-      secretAccessKey: process.env.S3_SECRET_ACCESS_KEY,
+      bucket: config.s3Bucket || 'image-processing',
+      region: config.s3Region,
+      endpoint: config.s3Endpoint,
+      accessKeyId: config.s3AccessKeyId,
+      secretAccessKey: config.s3SecretAccessKey,
     },
   };
 
   monitoring.logger.info(
-    { storageType, baseUrl: storageConfig.baseUrl },
+    { storageType: config.storageType, baseUrl: storageConfig.baseUrl },
     'Storage configuration initialized'
   );
 

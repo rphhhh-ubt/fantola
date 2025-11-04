@@ -1,5 +1,5 @@
 import { getWorkerConfig } from '@monorepo/config';
-import { formatDate } from '@monorepo/shared';
+import { formatDate, setupDatabaseShutdown, DatabaseClient } from '@monorepo/shared';
 import { Monitoring } from '@monorepo/monitoring';
 import { ImageProcessor } from './processors/image-processor';
 import { ImageTool, ImageProcessingJob } from './types';
@@ -11,6 +11,26 @@ async function main() {
   const monitoring = new Monitoring({
     service: 'worker',
     environment: config.nodeEnv,
+  });
+
+  // Initialize database client
+  DatabaseClient.initialize({
+    logQueries: config.nodeEnv === 'development',
+    onError: (error, context) => {
+      monitoring.handleError(error, context as Record<string, unknown>);
+    },
+  });
+
+  // Setup graceful shutdown
+  setupDatabaseShutdown({
+    timeout: 15000, // Longer timeout for workers to finish jobs
+    logger: (message) => monitoring.logger.info(message),
+    cleanupHandlers: [
+      async () => {
+        monitoring.logger.info('Stopping worker job processing...');
+        // Add worker cleanup logic here
+      },
+    ],
   });
 
   if (config.enableMetrics) {

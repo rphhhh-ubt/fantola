@@ -1,3 +1,7 @@
+// Export database access layer
+export * from './db';
+
+// Export utility functions
 export interface User {
   id: string;
   email: string;

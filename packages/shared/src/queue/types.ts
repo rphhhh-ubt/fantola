@@ -21,6 +21,7 @@ export enum QueueName {
   PAYMENT_PROCESSING = 'payment-processing',
   NOTIFICATION = 'notification',
   SUBSCRIPTION_RENEWAL = 'subscription-renewal',
+  SORA_GENERATION = 'sora-generation',
 }
 
 /**
@@ -101,6 +102,15 @@ export interface SubscriptionRenewalJobData extends BaseJobData {
 }
 
 /**
+ * Sora generation job data
+ */
+export interface SoraGenerationJobData extends BaseJobData {
+  generationId: string;
+  prompt: string;
+  imageUrls: string[];
+}
+
+/**
  * Union type of all job data types
  */
 export type JobData =
@@ -109,7 +119,8 @@ export type JobData =
   | ChatProcessingJobData
   | PaymentProcessingJobData
   | NotificationJobData
-  | SubscriptionRenewalJobData;
+  | SubscriptionRenewalJobData
+  | SoraGenerationJobData;
 
 /**
  * Job result interface

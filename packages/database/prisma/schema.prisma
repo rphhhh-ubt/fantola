@@ -58,6 +58,12 @@ enum GenerationStatus {
   canceled
 }
 
+enum ModerationStatus {
+  pending
+  approved
+  rejected
+}
+
 // ============================================================================
 // MODELS
 // ============================================================================
@@ -94,6 +100,7 @@ model User {
   generations          Generation[]
   chatMessages         ChatMessage[]
   payments             Payment[]
+  soraGenerations      SoraGeneration[]
 
   @@index([telegramId])
   @@index([tier])
@@ -269,4 +276,88 @@ model SubscriptionTierConfig {
   metadata Json?
 
   @@map("subscription_tier_config")
+}
+
+model SoraGeneration {
+  id        String   @id @default(uuid()) @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  userId String @map("user_id") @db.Uuid
+  status GenerationStatus @default(pending)
+
+  // Input
+  prompt String @db.Text
+
+  // Image references (up to 4)
+  images SoraImage[]
+
+  // Moderation
+  moderationStatus ModerationStatus @default(pending) @map("moderation_status")
+  moderationReason String? @map("moderation_reason") @db.Text
+  moderatedAt DateTime? @map("moderated_at") @db.Timestamptz
+
+  // Output (multi-resolution)
+  resultUrls String[] @map("result_urls")
+  errorMessage String? @map("error_message") @db.Text
+
+  // Tokens
+  tokensUsed Int @map("tokens_used") @default(0)
+
+  // Processing times
+  startedAt DateTime? @map("started_at") @db.Timestamptz
+  completedAt DateTime? @map("completed_at") @db.Timestamptz
+
+  // Retry tracking
+  retryCount Int @default(0) @map("retry_count")
+  lastRetryAt DateTime? @map("last_retry_at") @db.Timestamptz
+
+  // Optional metadata
+  metadata Json?
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
+  @@index([moderationStatus])
+  @@index([createdAt])
+  @@map("sora_generations")
+}
+
+model SoraImage {
+  id        String   @id @default(uuid()) @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  generationId String @map("generation_id") @db.Uuid
+  
+  // Temporary storage location
+  storageKey String @map("storage_key") @db.VarChar(500)
+  storageUrl String @map("storage_url") @db.Text
+
+  // Image metadata
+  size Int // bytes
+  width Int?
+  height Int?
+  mimeType String @map("mime_type") @db.VarChar(100)
+
+  // Moderation
+  moderationStatus ModerationStatus @default(pending) @map("moderation_status")
+  moderationReason String? @map("moderation_reason") @db.Text
+  moderatedAt DateTime? @map("moderated_at") @db.Timestamptz
+
+  // Expiry for temporary storage (24 hours from creation)
+  expiresAt DateTime @map("expires_at") @db.Timestamptz
+
+  // Optional metadata
+  metadata Json?
+
+  // Relations
+  generation SoraGeneration @relation(fields: [generationId], references: [id], onDelete: Cascade)
+
+  @@index([generationId])
+  @@index([storageKey])
+  @@index([moderationStatus])
+  @@index([expiresAt])
+  @@map("sora_images")
 }

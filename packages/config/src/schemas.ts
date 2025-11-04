@@ -66,12 +66,26 @@ export const databaseConfigSchema = z.object({
   databaseUrl: z.string().optional(),
 });
 
-// API configuration schema
-export const apiConfigSchema = baseConfigSchema.extend({
-  apiPort: numberString(3000),
-  apiBaseUrl: z.string().default('http://localhost:3000'),
-  jwtSecret: z.string().min(1, 'JWT_SECRET is required'),
+// Storage configuration schema
+export const storageConfigSchema = z.object({
+  storageType: z.enum(['local', 's3']).default('local'),
+  storageBaseUrl: z.string().default('http://localhost/static'),
+  storageLocalPath: z.string().default('/var/www/storage'),
+  s3Endpoint: z.string().optional(),
+  s3Region: z.string().default('us-east-1'),
+  s3Bucket: z.string().optional(),
+  s3AccessKeyId: z.string().optional(),
+  s3SecretAccessKey: z.string().optional(),
 });
+
+// API configuration schema
+export const apiConfigSchema = baseConfigSchema
+  .merge(storageConfigSchema)
+  .extend({
+    apiPort: numberString(3000),
+    apiBaseUrl: z.string().default('http://localhost:3000'),
+    jwtSecret: z.string().min(1, 'JWT_SECRET is required'),
+  });
 
 // Bot configuration schema
 export const botConfigSchema = baseConfigSchema.extend({
@@ -92,18 +106,6 @@ export const botConfigSchema = baseConfigSchema.extend({
   geminiApiKey: z.string().min(1, 'GEMINI_API_KEY is required'),
   geminiModel: z.string().default('gemini-1.5-flash'),
   geminiMaxTokens: numberString(2048),
-});
-
-// Storage configuration schema
-export const storageConfigSchema = z.object({
-  storageType: z.enum(['local', 's3']).default('local'),
-  storageBaseUrl: z.string().default('http://localhost/static'),
-  storageLocalPath: z.string().default('/var/www/storage'),
-  s3Endpoint: z.string().optional(),
-  s3Region: z.string().default('us-east-1'),
-  s3Bucket: z.string().optional(),
-  s3AccessKeyId: z.string().optional(),
-  s3SecretAccessKey: z.string().optional(),
 });
 
 // Worker configuration schema

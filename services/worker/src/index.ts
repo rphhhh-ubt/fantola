@@ -13,6 +13,7 @@ import { ImageTool, ImageProcessingJob } from './types';
 import { StorageConfig } from './storage';
 import { WorkerService } from './worker/worker-service';
 import { ExampleProcessor } from './processors/example-processor';
+import { SoraProcessor } from './processors/sora-processor';
 
 async function main() {
   const config = getWorkerConfig();
@@ -104,6 +105,17 @@ async function main() {
   workerService.registerProcessor({
     queueName: QueueName.IMAGE_PROCESSING,
     processor: exampleProcessor,
+    concurrency: config.workerConcurrency,
+  });
+
+  // Register Sora processor
+  const soraProcessor = new SoraProcessor({
+    monitoring,
+    storageConfig,
+  });
+  workerService.registerProcessor({
+    queueName: QueueName.SORA_GENERATION,
+    processor: soraProcessor,
     concurrency: config.workerConcurrency,
   });
 

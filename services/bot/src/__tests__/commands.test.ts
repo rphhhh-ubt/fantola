@@ -1,6 +1,7 @@
 import { handleHelp } from '../commands/help';
 import { BotContext } from '../types';
 import { MockTelegramBot, createMockTelegramUpdate } from '@monorepo/test-utils';
+import { I18n } from '../i18n';
 
 describe('Command Handlers', () => {
   let mockBot: MockTelegramBot;
@@ -36,6 +37,7 @@ describe('Command Handlers', () => {
         message: update.message,
         from: update.message?.from,
         chat: update.message?.chat,
+        i18n: new I18n('en'),
         reply: jest.fn().mockResolvedValue({}),
       } as unknown as BotContext;
 

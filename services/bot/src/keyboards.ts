@@ -1,28 +1,24 @@
 import { Keyboard } from 'grammy';
-
-/**
- * Main navigation keyboard buttons
- */
-export const MainMenuButtons = {
-  GENERATE_IMAGE: '🎨 Generate Image',
-  CHAT_GPT: '💬 Chat with GPT',
-  MY_PROFILE: '👤 My Profile',
-  SUBSCRIPTION: '💎 Subscription',
-  HELP: '❓ Help',
-} as const;
+import { I18n } from './i18n';
 
 /**
  * Build main menu keyboard with navigation buttons
  */
-export function buildMainMenuKeyboard(): Keyboard {
+export function buildMainMenuKeyboard(i18n: I18n): Keyboard {
+  const { buttons } = i18n;
+  
   return new Keyboard()
-    .text(MainMenuButtons.GENERATE_IMAGE)
-    .text(MainMenuButtons.CHAT_GPT)
+    .text(buttons.productCard)
+    .text(buttons.soraImage)
     .row()
-    .text(MainMenuButtons.MY_PROFILE)
-    .text(MainMenuButtons.SUBSCRIPTION)
+    .text(buttons.chatGpt)
+    .text(buttons.myProfile)
     .row()
-    .text(MainMenuButtons.HELP)
+    .text(buttons.subscription)
+    .text(buttons.support)
+    .row()
+    .text(buttons.channel)
+    .text(buttons.userChat)
     .resized()
     .persistent();
 }
@@ -30,20 +26,25 @@ export function buildMainMenuKeyboard(): Keyboard {
 /**
  * Build back keyboard for returning to main menu
  */
-export function buildBackKeyboard(): Keyboard {
-  return new Keyboard().text('⬅️ Back to Menu').resized().persistent();
+export function buildBackKeyboard(i18n: I18n): Keyboard {
+  const { buttons } = i18n;
+  
+  return new Keyboard()
+    .text(buttons.backToMenu)
+    .resized()
+    .persistent();
 }
 
 /**
  * Build subscription tier selection keyboard
  */
-export function buildSubscriptionKeyboard(): Keyboard {
+export function buildSubscriptionKeyboard(i18n: I18n): Keyboard {
   return new Keyboard()
     .text('💎 Professional - 2000 tokens')
     .row()
     .text('🏢 Business - 10000 tokens')
     .row()
-    .text('⬅️ Back to Menu')
+    .text(i18n.buttons.backToMenu)
     .resized()
     .persistent();
 }
@@ -51,6 +52,18 @@ export function buildSubscriptionKeyboard(): Keyboard {
 /**
  * Build cancel keyboard for canceling current operation
  */
-export function buildCancelKeyboard(): Keyboard {
-  return new Keyboard().text('❌ Cancel').resized().persistent();
+export function buildCancelKeyboard(i18n: I18n): Keyboard {
+  const { buttons } = i18n;
+  
+  return new Keyboard()
+    .text(buttons.cancel)
+    .resized()
+    .persistent();
+}
+
+/**
+ * Get button labels for a specific language (for handler matching)
+ */
+export function getButtonLabels(i18n: I18n) {
+  return i18n.buttons;
 }

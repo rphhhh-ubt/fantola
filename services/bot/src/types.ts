@@ -1,5 +1,6 @@
 import { Context, SessionFlavor } from 'grammy';
 import { User } from '@monorepo/database';
+import { Language, I18n } from './i18n';
 
 /**
  * Session data stored in Redis
@@ -8,6 +9,7 @@ export interface SessionData {
   userId?: string;
   telegramId?: number;
   username?: string;
+  language?: Language;
   state?: string;
   conversationContext?: {
     lastCommand?: string;
@@ -21,6 +23,7 @@ export interface SessionData {
  */
 export interface BotContext extends Context, SessionFlavor<SessionData> {
   user?: User | null;
+  i18n: I18n;
 }
 
 /**

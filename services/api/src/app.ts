@@ -10,6 +10,7 @@ import { Monitoring } from '@monorepo/monitoring';
 import databasePlugin from './plugins/database';
 import monitoringPlugin from './plugins/monitoring';
 import authPlugin from './plugins/auth';
+import yookassaPlugin from './plugins/yookassa';
 import routes from './routes';
 import { swaggerConfig, swaggerUiConfig } from './config/swagger';
 
@@ -58,6 +59,10 @@ export async function buildApp(options: AppOptions): Promise<FastifyInstance> {
   await app.register(databasePlugin);
   await app.register(monitoringPlugin, { monitoring });
   await app.register(authPlugin, { jwtSecret: config.jwtSecret });
+  await app.register(yookassaPlugin, {
+    shopId: process.env.YOOKASSA_SHOP_ID,
+    secretKey: process.env.YOOKASSA_SECRET_KEY,
+  });
 
   await app.register(routes, { prefix: '/api/v1' });
 

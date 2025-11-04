@@ -46,6 +46,10 @@ backups/
 # Allow migration and init SQL files
 !scripts/db/**/*.sql
 
+# Prisma
+.prisma/
+!packages/database/prisma/migrations/**/*.sql
+
 # SSL certificates
 deploy/nginx/ssl/
 *.pem

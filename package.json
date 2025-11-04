@@ -17,7 +17,13 @@
     "test:packages": "pnpm -r --filter './packages/*' test",
     "bot:dev": "pnpm --filter bot dev",
     "api:dev": "pnpm --filter api dev",
-    "worker:dev": "pnpm --filter worker dev"
+    "worker:dev": "pnpm --filter worker dev",
+    "db:generate": "pnpm --filter @monorepo/database prisma:generate",
+    "db:migrate:dev": "pnpm --filter @monorepo/database prisma:migrate:dev",
+    "db:migrate:deploy": "pnpm --filter @monorepo/database prisma:migrate:deploy",
+    "db:migrate:reset": "pnpm --filter @monorepo/database prisma:migrate:reset",
+    "db:seed": "pnpm --filter @monorepo/database db:seed",
+    "db:studio": "pnpm --filter @monorepo/database prisma:studio"
   },
   "engines": {
     "node": ">=18.0.0",

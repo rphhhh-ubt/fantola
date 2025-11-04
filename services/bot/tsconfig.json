@@ -8,8 +8,10 @@
   "exclude": ["node_modules", "dist"],
   "references": [
     { "path": "../../packages/config" },
+    { "path": "../../packages/database" },
     { "path": "../../packages/shared" },
     { "path": "../../packages/monitoring" },
+    { "path": "../../packages/rate-limit" },
     { "path": "../../packages/test-utils" }
   ]
 }

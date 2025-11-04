@@ -1,14 +1,21 @@
-import { getConfig } from '@monorepo/config';
-import { formatDate, setupDatabaseShutdown, DatabaseClient } from '@monorepo/shared';
+import { getBotConfig } from '@monorepo/config';
+import { setupDatabaseShutdown, DatabaseClient } from '@monorepo/shared';
 import { Monitoring } from '@monorepo/monitoring';
+import Redis from 'ioredis';
+import { createBot, startPolling, startWebhook, stopBot } from './bot';
+import { RunnerHandle } from '@grammyjs/runner';
+import { BotMode } from './types';
 
 async function main() {
-  const config = getConfig();
+  const config = getBotConfig();
 
+  // Initialize monitoring
   const monitoring = new Monitoring({
     service: 'bot',
     environment: config.nodeEnv,
   });
+
+  monitoring.logger.info({ environment: config.nodeEnv }, 'Starting bot service...');
 
   // Initialize database client
   DatabaseClient.initialize({
@@ -18,45 +25,74 @@ async function main() {
     },
   });
 
+  // Initialize Redis client
+  const redis = config.redisUrl
+    ? new Redis(config.redisUrl)
+    : new Redis({
+        host: config.redisHost,
+        port: config.redisPort,
+        password: config.redisPassword,
+      });
+
+  redis.on('error', (error) => {
+    monitoring.handleError(error, { context: 'redis' });
+  });
+
+  redis.on('connect', () => {
+    monitoring.logger.info('Redis connected');
+  });
+
+  // Initialize bot
+  const bot = createBot(config.telegramBotToken, redis, monitoring);
+
+  // Determine bot mode (polling for dev, webhook for prod)
+  const botMode: BotMode = config.nodeEnv === 'development' ? 'polling' : 'webhook';
+  let runner: RunnerHandle | null = null;
+
+  // Start bot based on mode
+  if (botMode === 'polling') {
+    runner = await startPolling(bot, monitoring);
+  } else {
+    await startWebhook(
+      bot,
+      {
+        mode: 'webhook',
+        webhookDomain: config.telegramWebhookDomain,
+        webhookPath: config.telegramWebhookPath || '/webhook/telegram',
+        webhookSecret: config.telegramWebhookSecret,
+      },
+      monitoring
+    );
+  }
+
   // Setup graceful shutdown
   setupDatabaseShutdown({
     timeout: 10000,
     logger: (message) => monitoring.logger.info(message),
     cleanupHandlers: [
       async () => {
-        monitoring.logger.info('Stopping bot...');
-        // Add bot cleanup logic here
+        await stopBot(bot, runner, monitoring);
+      },
+      async () => {
+        monitoring.logger.info('Disconnecting Redis...');
+        await redis.quit();
       },
     ],
   });
 
+  // Start metrics server if enabled
   if (config.enableMetrics) {
     await monitoring.startMetricsServer(config.metricsPort);
   }
 
   monitoring.logger.info(
     {
-      environment: config.nodeEnv,
-      metricsPort: config.metricsPort,
+      mode: botMode,
       metricsEnabled: config.enableMetrics,
+      metricsPort: config.metricsPort,
     },
-    'Bot service started'
+    'Bot service started successfully'
   );
-
-  monitoring.logger.debug(
-    { currentTime: formatDate(new Date()) },
-    'Current time example'
-  );
-
-  monitoring.trackKPI({
-    type: 'active_user',
-    data: { userId: 'telegram-user-123' },
-  });
-
-  monitoring.trackKPI({
-    type: 'generation_success',
-    data: { type: 'text' },
-  });
 }
 
 main().catch((error) => {

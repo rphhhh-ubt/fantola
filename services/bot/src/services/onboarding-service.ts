@@ -1,12 +1,15 @@
 import { db } from '@monorepo/shared';
 import { SubscriptionTier, OperationType, User } from '@monorepo/database';
 import { I18n } from '../i18n';
+import { ChannelVerificationService, ChannelMembershipResult } from './channel-verification-service';
 
 export interface OnboardingResult {
   user: User;
   isNewUser: boolean;
   tokensAwarded: number;
   message: string;
+  channelCheckRequired?: boolean;
+  channelCheckPassed?: boolean;
 }
 
 export interface GiftEligibilityCheck {
@@ -94,9 +97,33 @@ export async function awardGiftTokens(userId: string, amount: number): Promise<U
 
 /**
  * Process user onboarding - handles both new and returning users
+ * Optionally checks channel membership for Gift tier users
  */
-export async function processUserOnboarding(user: User, i18n: I18n): Promise<OnboardingResult> {
+export async function processUserOnboarding(
+  user: User,
+  i18n: I18n,
+  channelVerificationService?: ChannelVerificationService
+): Promise<OnboardingResult> {
   const isNewUser = !user.lastGiftClaimAt && user.tier === SubscriptionTier.Gift;
+  const isGiftTier = user.tier === SubscriptionTier.Gift;
+
+  // Check channel membership for Gift tier users if service is provided
+  if (isGiftTier && channelVerificationService) {
+    const telegramId = parseInt(user.telegramId);
+    const membershipResult = await channelVerificationService.checkMembership(telegramId);
+
+    // If channel verification failed or user is not a member, return error message
+    if (!membershipResult.isMember) {
+      return {
+        user,
+        isNewUser: false,
+        tokensAwarded: 0,
+        message: buildChannelVerificationErrorMessage(membershipResult, i18n, channelVerificationService),
+        channelCheckRequired: true,
+        channelCheckPassed: false,
+      };
+    }
+  }
   
   if (isNewUser) {
     const giftAmount = 100;
@@ -107,6 +134,8 @@ export async function processUserOnboarding(user: User, i18n: I18n): Promise<Onb
       isNewUser: true,
       tokensAwarded: giftAmount,
       message: buildWelcomeMessage(updatedUser, giftAmount, i18n),
+      channelCheckRequired: isGiftTier && !!channelVerificationService,
+      channelCheckPassed: true,
     };
   }
 
@@ -121,6 +150,8 @@ export async function processUserOnboarding(user: User, i18n: I18n): Promise<Onb
       isNewUser: false,
       tokensAwarded: giftAmount,
       message: buildMonthlyRenewalMessage(updatedUser, giftAmount, i18n),
+      channelCheckRequired: isGiftTier && !!channelVerificationService,
+      channelCheckPassed: true,
     };
   }
 
@@ -129,6 +160,8 @@ export async function processUserOnboarding(user: User, i18n: I18n): Promise<Onb
     isNewUser: false,
     tokensAwarded: 0,
     message: buildReturningUserMessage(user, i18n),
+    channelCheckRequired: false,
+    channelCheckPassed: undefined,
   };
 }
 
@@ -189,4 +222,38 @@ function buildReturningUserMessage(user: User, i18n: I18n): string {
   }
 
   return messages.join('\n');
+}
+
+/**
+ * Build error message for channel verification failures
+ */
+function buildChannelVerificationErrorMessage(
+  result: ChannelMembershipResult,
+  i18n: I18n,
+  channelService: ChannelVerificationService
+): string {
+  const channel = channelService.formatChannelForMessage();
+
+  switch (result.error) {
+    case 'channel_not_configured':
+      return i18n.channelVerification.channelNotConfigured;
+    
+    case 'rate_limit':
+      return i18n.common.rateLimitExceeded.replace('{seconds}', '60');
+    
+    case 'user_not_found':
+    case 'channel_private':
+      return i18n.t('channelVerification.privateAccount');
+    
+    case 'api_error':
+      return i18n.channelVerification.verificationError;
+    
+    default:
+      // User left or was kicked
+      if (result.status === 'left' || result.status === 'kicked') {
+        return i18n.t('channelVerification.leftChannel', { channel });
+      }
+      // Default not subscribed message
+      return i18n.t('channelVerification.notSubscribed', { channel });
+  }
 }

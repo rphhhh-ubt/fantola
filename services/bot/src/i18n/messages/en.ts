@@ -154,6 +154,21 @@ export const en = {
     profileError: 'Unable to load profile. Please try again.',
     tokens: 'tokens',
   },
+
+  // Channel verification messages
+  channelVerification: {
+    notSubscribed: '❌ You need to subscribe to our channel to use the Gift tier.\n\n👉 Subscribe here: {channel}\n\nAfter subscribing, send /start again.',
+    verificationError: '❌ Unable to verify channel subscription. Please try again later.',
+    subscriptionRequired: '📢 Channel subscription required for Gift tier',
+    checkingMembership: '⏳ Checking channel subscription...',
+    leftChannel: '⚠️ You have left our channel. Please rejoin to continue using the Gift tier:\n\n👉 {channel}',
+    privateAccount: '❌ Your account privacy settings prevent us from verifying your channel subscription. Please adjust your settings or upgrade to a paid plan.',
+    channelNotConfigured: '⚠️ Channel verification is not configured. Please contact support.',
+    status: {
+      subscribed: '✅ Subscribed',
+      notSubscribed: '❌ Not subscribed',
+    },
+  },
 };
 
 export type Messages = typeof en;

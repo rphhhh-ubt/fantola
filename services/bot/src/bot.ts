@@ -4,6 +4,7 @@ import Redis from 'ioredis';
 import { BotContext, SessionData, BotInitConfig } from './types';
 import { RedisSessionAdapter } from './session-adapter';
 import { Monitoring } from '@monorepo/monitoring';
+import { ChannelVerificationService } from './services/channel-verification-service';
 import {
   authMiddleware,
   createErrorHandler,
@@ -24,9 +25,15 @@ import { handleTextMessage } from './handlers';
 export function createBot(
   token: string,
   redis: Redis,
-  monitoring: Monitoring
+  monitoring: Monitoring,
+  channelId?: string
 ): Bot<BotContext> {
   const bot = new Bot<BotContext>(token);
+
+  // Initialize channel verification service if channel ID is provided
+  const channelVerification = channelId
+    ? new ChannelVerificationService(bot, redis, monitoring, { channelId })
+    : undefined;
 
   // Set up session storage with Redis
   const sessionAdapter = new RedisSessionAdapter(redis, {
@@ -51,6 +58,14 @@ export function createBot(
 
   // I18n middleware - must come after session but before auth
   bot.use(i18nMiddleware);
+
+  // Inject channel verification service into context
+  if (channelVerification) {
+    bot.use(async (ctx, next) => {
+      ctx.channelVerification = channelVerification;
+      await next();
+    });
+  }
 
   // Auth middleware - loads user from database
   bot.use(authMiddleware());

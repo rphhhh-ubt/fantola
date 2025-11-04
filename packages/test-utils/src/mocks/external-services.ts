@@ -99,6 +99,19 @@ export class MockRedisClient {
     return zset ? zset.size : 0;
   }
 
+  async incr(key: string): Promise<number> {
+    const currentValue = await this.get(key);
+    const newValue = currentValue ? parseInt(currentValue, 10) + 1 : 1;
+    await this.set(key, String(newValue));
+    return newValue;
+  }
+
+  async setex(key: string, seconds: number, value: string): Promise<'OK'> {
+    await this.set(key, value);
+    await this.expire(key, seconds);
+    return 'OK';
+  }
+
   async sadd(key: string, ...members: string[]): Promise<number> {
     if (!this.sets.has(key)) {
       this.sets.set(key, new Set());

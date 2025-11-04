@@ -42,8 +42,8 @@ async function main() {
     monitoring.logger.info('Redis connected');
   });
 
-  // Initialize bot
-  const bot = createBot(config.telegramBotToken, redis, monitoring);
+  // Initialize bot with optional channel verification
+  const bot = createBot(config.telegramBotToken, redis, monitoring, config.telegramChannelId);
 
   // Determine bot mode (polling for dev, webhook for prod)
   const botMode: BotMode = config.nodeEnv === 'development' ? 'polling' : 'webhook';

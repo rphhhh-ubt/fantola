@@ -4,6 +4,9 @@ export * from './db';
 // Export queue module
 export * from './queue';
 
+// Export token accounting module
+export * from './tokens';
+
 // Export utility functions
 export interface User {
   id: string;

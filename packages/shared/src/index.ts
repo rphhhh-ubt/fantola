@@ -10,6 +10,9 @@ export * from './tokens';
 // Export subscription management module
 export * from './subscriptions';
 
+// Export YooKassa integration module
+export * from './yookassa';
+
 // Export utility functions
 export interface User {
   id: string;

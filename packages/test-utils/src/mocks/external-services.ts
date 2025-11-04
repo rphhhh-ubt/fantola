@@ -356,3 +356,140 @@ export class MockDatabaseClient {
     this.queries = [];
   }
 }
+
+export class MockYooKassaClient {
+  private payments: Map<string, any> = new Map();
+  private refunds: Map<string, any> = new Map();
+  private webhookSecret: string = 'test-webhook-secret';
+
+  async createPayment(request: any, _idempotenceKey?: string): Promise<any> {
+    const paymentId = `payment-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    const payment = {
+      id: paymentId,
+      status: request.capture ? 'succeeded' : 'waiting_for_capture',
+      amount: request.amount,
+      description: request.description,
+      recipient: request.recipient,
+      payment_method: request.payment_method_data,
+      created_at: new Date().toISOString(),
+      confirmation: request.confirmation || {
+        type: 'redirect',
+        confirmation_url: `https://yookassa.ru/payments/${paymentId}`,
+      },
+      test: true,
+      paid: request.capture || false,
+      refundable: false,
+      metadata: request.metadata || {},
+    };
+
+    this.payments.set(paymentId, payment);
+    return payment;
+  }
+
+  async getPayment(paymentId: string): Promise<any> {
+    const payment = this.payments.get(paymentId);
+    if (!payment) {
+      throw new Error(`Payment not found: ${paymentId}`);
+    }
+    return payment;
+  }
+
+  async capturePayment(paymentId: string, request?: any, _idempotenceKey?: string): Promise<any> {
+    const payment = this.payments.get(paymentId);
+    if (!payment) {
+      throw new Error(`Payment not found: ${paymentId}`);
+    }
+
+    if (payment.status !== 'waiting_for_capture') {
+      throw new Error(`Payment cannot be captured: ${payment.status}`);
+    }
+
+    payment.status = 'succeeded';
+    payment.paid = true;
+    payment.refundable = true;
+    payment.captured_at = new Date().toISOString();
+
+    if (request?.amount) {
+      payment.amount = request.amount;
+    }
+
+    this.payments.set(paymentId, payment);
+    return payment;
+  }
+
+  async cancelPayment(paymentId: string, request?: any, _idempotenceKey?: string): Promise<any> {
+    const payment = this.payments.get(paymentId);
+    if (!payment) {
+      throw new Error(`Payment not found: ${paymentId}`);
+    }
+
+    payment.status = 'canceled';
+    payment.cancellation_details = {
+      party: 'merchant',
+      reason: request?.cancellation_details?.reason || 'Canceled by merchant',
+    };
+
+    this.payments.set(paymentId, payment);
+    return payment;
+  }
+
+  async createRefund(request: any, _idempotenceKey?: string): Promise<any> {
+    const payment = this.payments.get(request.payment_id);
+    if (!payment) {
+      throw new Error(`Payment not found: ${request.payment_id}`);
+    }
+
+    if (!payment.refundable) {
+      throw new Error('Payment is not refundable');
+    }
+
+    const refundId = `refund-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    const refund = {
+      id: refundId,
+      payment_id: request.payment_id,
+      status: 'succeeded',
+      created_at: new Date().toISOString(),
+      amount: request.amount,
+      description: request.description,
+      metadata: request.metadata || {},
+    };
+
+    this.refunds.set(refundId, refund);
+    return refund;
+  }
+
+  async getRefund(refundId: string): Promise<any> {
+    const refund = this.refunds.get(refundId);
+    if (!refund) {
+      throw new Error(`Refund not found: ${refundId}`);
+    }
+    return refund;
+  }
+
+  validateWebhookSignature(notification: any, signature: string): boolean {
+    const crypto = require('crypto');
+    const notificationString = JSON.stringify(notification);
+    const hash = crypto
+      .createHmac('sha256', this.webhookSecret)
+      .update(notificationString)
+      .digest('hex');
+    return hash === signature;
+  }
+
+  setWebhookSecret(secret: string): void {
+    this.webhookSecret = secret;
+  }
+
+  clear(): void {
+    this.payments.clear();
+    this.refunds.clear();
+  }
+
+  getAllPayments(): any[] {
+    return Array.from(this.payments.values());
+  }
+
+  getAllRefunds(): any[] {
+    return Array.from(this.refunds.values());
+  }
+}

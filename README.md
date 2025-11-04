@@ -34,7 +34,14 @@ A background worker service for processing asynchronous jobs, scheduled tasks, o
 ## 📚 Packages
 
 ### Config (`packages/config`)
-Shared configuration utilities and environment variable management used across all services.
+Centralized configuration management with dotenv-flow and zod validation:
+- **dotenv-flow**: Automatic loading from multiple .env files
+- **zod**: Runtime validation of required environment variables
+- **Type Safety**: Full TypeScript support with inferred types
+- **Service-Specific**: Separate config helpers for API, Bot, and Worker services
+- **Error Handling**: Clear error messages for missing or invalid variables
+
+See [Config Package](packages/config/README.md) for detailed documentation.
 
 ### Shared (`packages/shared`)
 Common types, interfaces, utilities, and business logic shared between services.
@@ -79,6 +86,25 @@ Install all dependencies across the monorepo:
 ```bash
 pnpm install
 ```
+
+### Configuration
+
+Copy the `.env.example` file to `.env` and configure the environment variables:
+
+```bash
+cp .env.example .env
+```
+
+Edit `.env` with your configuration values. See [Environment Variables](#-environment-variables) section for details.
+
+The config package uses `dotenv-flow` which supports multiple environment files:
+- `.env` - Base configuration (committed)
+- `.env.local` - Local overrides (gitignored)
+- `.env.development` - Development-specific config
+- `.env.production` - Production-specific config
+- `.env.test` - Test-specific config
+
+For detailed configuration documentation, see [Config Package](packages/config/README.md).
 
 ## 🚢 Deployment
 
@@ -418,6 +444,94 @@ pnpm --filter "@monorepo/*" <command>
 # Run command in all services
 pnpm --filter "./services/*" <command>
 ```
+
+## 🔧 Environment Variables
+
+The monorepo uses the `@monorepo/config` package for centralized configuration management with environment variables validation.
+
+### Required Variables by Service
+
+#### API Service
+- `JWT_SECRET` - JWT secret key for authentication (required)
+- `POSTGRES_*` or `DATABASE_URL` - Database connection
+
+#### Bot Service
+- `TELEGRAM_BOT_TOKEN` - Telegram bot token (required)
+- `POSTGRES_*` or `DATABASE_URL` - Database connection
+- `YOOKASSA_*` - YooKassa payment configuration (optional)
+
+#### Worker Service
+- `STORAGE_TYPE` - Storage backend: `local` or `s3`
+- `S3_*` - S3 configuration if using S3 storage
+
+### Common Variables (All Services)
+
+| Variable | Type | Default | Description |
+|----------|------|---------|-------------|
+| `NODE_ENV` | string | `development` | Node environment |
+| `PORT` | number | `3000` | Service port |
+| `LOG_LEVEL` | string | `info` | Logging level |
+| `ENABLE_METRICS` | boolean | `false` | Enable Prometheus metrics |
+| `METRICS_PORT` | number | `9091` | Metrics server port |
+| `REDIS_HOST` | string | `localhost` | Redis host |
+| `REDIS_PORT` | number | `6379` | Redis port |
+| `REDIS_PASSWORD` | string | - | Redis password |
+| `REDIS_URL` | string | - | Redis URL (overrides individual components) |
+
+### Database Variables
+
+| Variable | Type | Default | Description |
+|----------|------|---------|-------------|
+| `POSTGRES_HOST` | string | `localhost` | PostgreSQL host |
+| `POSTGRES_PORT` | number | `5432` | PostgreSQL port |
+| `POSTGRES_DB` | string | `monorepo` | Database name |
+| `POSTGRES_USER` | string | `postgres` | Database user |
+| `POSTGRES_PASSWORD` | string | `postgres` | Database password |
+| `DATABASE_URL` | string | - | Full database URL (overrides individual components) |
+
+### Storage Variables (Worker Service)
+
+| Variable | Type | Default | Description |
+|----------|------|---------|-------------|
+| `STORAGE_TYPE` | string | `local` | Storage backend (`local` or `s3`) |
+| `STORAGE_BASE_URL` | string | `http://localhost/static` | Base URL for static files |
+| `STORAGE_LOCAL_PATH` | string | `/var/www/storage` | Local storage path |
+| `S3_ENDPOINT` | string | - | S3 endpoint (for MinIO, Wasabi, etc.) |
+| `S3_REGION` | string | `us-east-1` | AWS region |
+| `S3_BUCKET` | string | - | S3 bucket name |
+| `S3_ACCESS_KEY_ID` | string | - | AWS access key |
+| `S3_SECRET_ACCESS_KEY` | string | - | AWS secret key |
+
+### Monitoring Variables
+
+| Variable | Type | Default | Description |
+|----------|------|---------|-------------|
+| `SENTRY_ENABLED` | boolean | `false` | Enable Sentry error tracking |
+| `SENTRY_DSN` | string | - | Sentry DSN URL |
+| `SENTRY_TRACES_SAMPLE_RATE` | number | `1.0` | Sentry traces sample rate |
+| `SENTRY_PROFILES_SAMPLE_RATE` | number | `1.0` | Sentry profiles sample rate |
+| `ALERT_WEBHOOK_URL` | string | - | Webhook URL for alerts (e.g., Slack) |
+
+### Payment Variables (Bot Service)
+
+| Variable | Type | Default | Description |
+|----------|------|---------|-------------|
+| `YOOKASSA_SHOP_ID` | string | - | YooKassa shop ID |
+| `YOOKASSA_SECRET_KEY` | string | - | YooKassa secret key |
+| `YOOKASSA_WEBHOOK_URL` | string | - | YooKassa webhook URL |
+| `YOOKASSA_WEBHOOK_SECRET` | string | - | YooKassa webhook secret |
+
+### Telegram Variables (Bot Service)
+
+| Variable | Type | Default | Description |
+|----------|------|---------|-------------|
+| `TELEGRAM_BOT_TOKEN` | string | **REQUIRED** | Telegram bot token |
+| `TELEGRAM_WEBHOOK_DOMAIN` | string | - | Webhook domain |
+| `TELEGRAM_WEBHOOK_PATH` | string | `/webhook/telegram` | Webhook path |
+| `TELEGRAM_WEBHOOK_URL` | string | - | Full webhook URL |
+| `TELEGRAM_WEBHOOK_SECRET` | string | - | Webhook secret for validation |
+
+For complete environment variable documentation, see [Config Package](packages/config/README.md).
 
 ## 📂 Project Structure
 

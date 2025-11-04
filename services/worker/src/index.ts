@@ -6,6 +6,8 @@ import {
   createRedisConnection,
   closeRedisConnections,
   QueueName,
+  TokenService,
+  db,
 } from '@monorepo/shared';
 import { Monitoring } from '@monorepo/monitoring';
 import { ImageProcessor } from './processors/image-processor';
@@ -14,6 +16,9 @@ import { StorageConfig } from './storage';
 import { WorkerService } from './worker/worker-service';
 import { ExampleProcessor } from './processors/example-processor';
 import { SoraProcessor } from './processors/sora-processor';
+import { ImageGenerationProcessor } from './processors/image-generation-processor';
+import { ChatProcessingProcessor } from './processors/chat-processing-processor';
+import { ProductCardProcessor } from './processors/product-card-processor';
 
 async function main() {
   const config = getWorkerConfig();
@@ -100,11 +105,29 @@ async function main() {
 
   const imageProcessor = new ImageProcessor(storageConfig, monitoring);
 
+  // Initialize token service
+  const tokenService = new TokenService(db, {
+    metricsCallback: (metrics) => {
+      monitoring.logger.debug(metrics, 'Token service metrics');
+    },
+  });
+
   // Register processors
-  const exampleProcessor = new ExampleProcessor({ monitoring });
+  const exampleProcessor = new ExampleProcessor({ monitoring, tokenService });
   workerService.registerProcessor({
     queueName: QueueName.IMAGE_PROCESSING,
     processor: exampleProcessor,
+    concurrency: config.workerConcurrency,
+  });
+
+  // Register Image Generation processor
+  const imageGenerationProcessor = new ImageGenerationProcessor({
+    monitoring,
+    storageConfig,
+  });
+  workerService.registerProcessor({
+    queueName: QueueName.IMAGE_GENERATION,
+    processor: imageGenerationProcessor,
     concurrency: config.workerConcurrency,
   });
 
@@ -116,6 +139,27 @@ async function main() {
   workerService.registerProcessor({
     queueName: QueueName.SORA_GENERATION,
     processor: soraProcessor,
+    concurrency: config.workerConcurrency,
+  });
+
+  // Register Chat Processing processor
+  const chatProcessor = new ChatProcessingProcessor({
+    monitoring,
+  });
+  workerService.registerProcessor({
+    queueName: QueueName.CHAT_PROCESSING,
+    processor: chatProcessor,
+    concurrency: config.workerConcurrency,
+  });
+
+  // Register Product Card processor
+  const productCardProcessor = new ProductCardProcessor({
+    monitoring,
+    storageConfig,
+  });
+  workerService.registerProcessor({
+    queueName: QueueName.PRODUCT_CARD_GENERATION,
+    processor: productCardProcessor,
     concurrency: config.workerConcurrency,
   });
 

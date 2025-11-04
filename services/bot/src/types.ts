@@ -3,6 +3,8 @@ import { User } from '@monorepo/database';
 import { Language, I18n } from './i18n';
 import { ChannelVerificationService } from './services/channel-verification-service';
 import { PaymentService } from './services/payment-service';
+import { ChatHandler } from './handlers/chat-handler';
+import { PhotoHandler } from './handlers/photo-handler';
 
 /**
  * Session data stored in Redis
@@ -28,6 +30,8 @@ export interface BotContext extends Context, SessionFlavor<SessionData> {
   i18n: I18n;
   channelVerification?: ChannelVerificationService;
   paymentService?: PaymentService;
+  chatHandler?: ChatHandler;
+  photoHandler?: PhotoHandler;
 }
 
 /**

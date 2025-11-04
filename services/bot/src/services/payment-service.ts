@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';
-import { db, SubscriptionTier, PaymentStatus, PaymentProvider } from '@monorepo/database';
+import { SubscriptionTier, PaymentStatus, PaymentProvider } from '@monorepo/database';
+import { db } from '@monorepo/shared';
 import { Monitoring } from '@monorepo/monitoring';
 
 /**
@@ -201,13 +202,13 @@ export class PaymentService {
         return this.buildConfirmationResult(payment);
       }
 
-      const tier = payment.subscriptionTier!;
+      const tier = payment.subscriptionTier! as SubscriptionTier;
       const tierConfig = TIER_CONFIG[tier];
       const now = new Date();
       const expiresAt = new Date(now.getTime() + tierConfig.durationDays * 24 * 60 * 60 * 1000);
 
       // Update payment, user subscription, and award tokens in a transaction
-      await db.$transaction(async (tx) => {
+      await db.$transaction(async (tx: any) => {
         // Update payment status
         await tx.payment.update({
           where: { id: payment.id },
@@ -370,9 +371,8 @@ export class PaymentService {
    * Build confirmation result from payment
    */
   private buildConfirmationResult(payment: any): PaymentConfirmationResult {
-    const tier = payment.subscriptionTier!;
+    const tier = payment.subscriptionTier! as SubscriptionTier;
     const tierConfig = TIER_CONFIG[tier];
-    const metadata = payment.metadata as any;
 
     return {
       success: true,

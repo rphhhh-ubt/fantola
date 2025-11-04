@@ -15,15 +15,17 @@
     "test:coverage": "jest --coverage"
   },
   "dependencies": {
-    "@monorepo/config": "workspace:*",
-    "@monorepo/shared": "workspace:*",
-    "@monorepo/monitoring": "workspace:*",
-    "@monorepo/database": "workspace:*",
-    "@monorepo/rate-limit": "workspace:*",
-    "grammy": "^1.32.0",
+    "@google/generative-ai": "^0.24.1",
     "@grammyjs/runner": "^2.0.3",
-    "ioredis": "^5.4.2",
+    "@monorepo/config": "workspace:*",
+    "@monorepo/database": "workspace:*",
+    "@monorepo/monitoring": "workspace:*",
+    "@monorepo/rate-limit": "workspace:*",
+    "@monorepo/shared": "workspace:*",
     "axios": "^1.7.9",
+    "grammy": "^1.32.0",
+    "groq-sdk": "^0.34.0",
+    "ioredis": "^5.4.2",
     "uuid": "^11.0.4"
   },
   "devDependencies": {

@@ -85,6 +85,13 @@ export const botConfigSchema = baseConfigSchema.extend({
   yookassaSecretKey: z.string().optional(),
   yookassaWebhookUrl: z.string().optional(),
   yookassaWebhookSecret: z.string().optional(),
+  // AI providers
+  groqApiKey: z.string().min(1, 'GROQ_API_KEY is required'),
+  groqModel: z.string().default('llama-3.1-70b-versatile'),
+  groqMaxTokens: numberString(2048),
+  geminiApiKey: z.string().min(1, 'GEMINI_API_KEY is required'),
+  geminiModel: z.string().default('gemini-1.5-flash'),
+  geminiMaxTokens: numberString(2048),
 });
 
 // Storage configuration schema

@@ -39,6 +39,14 @@ export function getBotConfig(): BotConfig {
       yookassaSecretKey: process.env.YOOKASSA_SECRET_KEY,
       yookassaWebhookUrl: process.env.YOOKASSA_WEBHOOK_URL,
       yookassaWebhookSecret: process.env.YOOKASSA_WEBHOOK_SECRET,
+      
+      // AI providers
+      groqApiKey: process.env.GROQ_API_KEY,
+      groqModel: process.env.GROQ_MODEL,
+      groqMaxTokens: process.env.GROQ_MAX_TOKENS,
+      geminiApiKey: process.env.GEMINI_API_KEY,
+      geminiModel: process.env.GEMINI_MODEL,
+      geminiMaxTokens: process.env.GEMINI_MAX_TOKENS,
     });
 
     const dbConfig = databaseConfigSchema.parse({

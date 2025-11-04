@@ -54,11 +54,18 @@ services:
       YOOKASSA_SHOP_ID: ${YOOKASSA_SHOP_ID}
       YOOKASSA_SECRET_KEY: ${YOOKASSA_SECRET_KEY}
       JWT_SECRET: ${JWT_SECRET}
+      STORAGE_TYPE: ${STORAGE_TYPE:-local}
+      STORAGE_BASE_URL: ${STORAGE_BASE_URL:-http://nginx/static}
+      STORAGE_LOCAL_PATH: ${STORAGE_LOCAL_PATH:-/var/www/storage}
       S3_ENDPOINT: ${S3_ENDPOINT}
       S3_REGION: ${S3_REGION:-us-east-1}
       S3_BUCKET: ${S3_BUCKET}
       S3_ACCESS_KEY_ID: ${S3_ACCESS_KEY_ID}
       S3_SECRET_ACCESS_KEY: ${S3_SECRET_ACCESS_KEY}
+    volumes:
+      - storage_uploads:/var/www/storage/uploads
+      - storage_generated:/var/www/storage/generated
+      - storage_processed:/var/www/storage/processed
     depends_on:
       postgres:
         condition: service_healthy
@@ -84,6 +91,13 @@ services:
       TELEGRAM_WEBHOOK_DOMAIN: ${TELEGRAM_WEBHOOK_DOMAIN}
       TELEGRAM_WEBHOOK_PATH: ${TELEGRAM_WEBHOOK_PATH:-/webhook/telegram}
       API_BASE_URL: ${API_BASE_URL:-http://api:3000}
+      STORAGE_TYPE: ${STORAGE_TYPE:-local}
+      STORAGE_BASE_URL: ${STORAGE_BASE_URL:-http://nginx/static}
+      STORAGE_LOCAL_PATH: ${STORAGE_LOCAL_PATH:-/var/www/storage}
+    volumes:
+      - storage_uploads:/var/www/storage/uploads
+      - storage_generated:/var/www/storage/generated
+      - storage_processed:/var/www/storage/processed
     depends_on:
       postgres:
         condition: service_healthy
@@ -104,11 +118,18 @@ services:
       REDIS_URL: redis://redis:6379
       WORKER_CONCURRENCY: ${WORKER_CONCURRENCY:-5}
       WORKER_MAX_JOBS_PER_WORKER: ${WORKER_MAX_JOBS_PER_WORKER:-50}
+      STORAGE_TYPE: ${STORAGE_TYPE:-local}
+      STORAGE_BASE_URL: ${STORAGE_BASE_URL:-http://nginx/static}
+      STORAGE_LOCAL_PATH: ${STORAGE_LOCAL_PATH:-/var/www/storage}
       S3_ENDPOINT: ${S3_ENDPOINT}
       S3_REGION: ${S3_REGION:-us-east-1}
       S3_BUCKET: ${S3_BUCKET}
       S3_ACCESS_KEY_ID: ${S3_ACCESS_KEY_ID}
       S3_SECRET_ACCESS_KEY: ${S3_SECRET_ACCESS_KEY}
+    volumes:
+      - storage_uploads:/var/www/storage/uploads
+      - storage_generated:/var/www/storage/generated
+      - storage_processed:/var/www/storage/processed
     depends_on:
       postgres:
         condition: service_healthy
@@ -121,4 +142,10 @@ volumes:
   postgres_data:
     driver: local
   redis_data:
+    driver: local
+  storage_uploads:
+    driver: local
+  storage_generated:
+    driver: local
+  storage_processed:
     driver: local

@@ -12,6 +12,9 @@ services:
       - ./deploy/nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
       - ./deploy/nginx/ssl:/etc/nginx/ssl:ro
       - nginx_logs:/var/log/nginx
+      - storage_uploads:/var/www/storage/uploads:ro
+      - storage_generated:/var/www/storage/generated:ro
+      - storage_processed:/var/www/storage/processed:ro
     depends_on:
       - api
     healthcheck:
@@ -23,3 +26,12 @@ services:
 volumes:
   nginx_logs:
     driver: local
+  storage_uploads:
+    external: true
+    name: monorepo_storage_uploads
+  storage_generated:
+    external: true
+    name: monorepo_storage_generated
+  storage_processed:
+    external: true
+    name: monorepo_storage_processed

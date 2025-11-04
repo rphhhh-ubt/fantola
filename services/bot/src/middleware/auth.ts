@@ -23,7 +23,7 @@ export function authMiddleware(): Middleware<BotContext> {
       });
 
       if (!user) {
-        // Create new user with Gift tier
+        // Create new user with Gift tier (tokens awarded in onboarding)
         user = await db.user.create({
           data: {
             telegramId: telegramUser.id.toString(),
@@ -31,7 +31,7 @@ export function authMiddleware(): Middleware<BotContext> {
             firstName: telegramUser.first_name,
             lastName: telegramUser.last_name,
             tier: SubscriptionTier.Gift,
-            tokensBalance: 100, // Gift tier default
+            tokensBalance: 0, // Tokens awarded during onboarding
           },
         });
       }

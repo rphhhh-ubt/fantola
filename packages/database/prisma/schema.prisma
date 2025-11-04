@@ -81,6 +81,9 @@ model User {
   tokensBalance Int @default(0) @map("tokens_balance")
   tokensSpent   Int @default(0) @map("tokens_spent")
 
+  // Gift token tracking (for monthly renewal)
+  lastGiftClaimAt DateTime? @map("last_gift_claim_at") @db.Timestamptz
+
   // Channel subscription (required for Gift tier)
   channelSubscribedAt DateTime? @map("channel_subscribed_at") @db.Timestamptz
 

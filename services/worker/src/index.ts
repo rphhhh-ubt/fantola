@@ -1,9 +1,18 @@
 import { getWorkerConfig } from '@monorepo/config';
-import { formatDate, setupDatabaseShutdown, DatabaseClient } from '@monorepo/shared';
+import {
+  formatDate,
+  setupDatabaseShutdown,
+  DatabaseClient,
+  createRedisConnection,
+  closeRedisConnections,
+  QueueName,
+} from '@monorepo/shared';
 import { Monitoring } from '@monorepo/monitoring';
 import { ImageProcessor } from './processors/image-processor';
 import { ImageTool, ImageProcessingJob } from './types';
 import { StorageConfig } from './storage';
+import { WorkerService } from './worker/worker-service';
+import { ExampleProcessor } from './processors/example-processor';
 
 async function main() {
   const config = getWorkerConfig();
@@ -21,6 +30,21 @@ async function main() {
     },
   });
 
+  // Create Redis connection for BullMQ
+  const redis = createRedisConnection({
+    host: config.redisHost,
+    port: config.redisPort,
+    password: config.redisPassword,
+  });
+
+  // Initialize worker service
+  const workerService = new WorkerService(monitoring, redis, {
+    concurrency: config.workerConcurrency,
+    maxJobsPerWorker: config.workerMaxJobsPerWorker,
+    enableHealthChecks: true,
+    heartbeatInterval: 30000, // 30 seconds
+  });
+
   // Setup graceful shutdown
   setupDatabaseShutdown({
     timeout: 15000, // Longer timeout for workers to finish jobs
@@ -28,7 +52,8 @@ async function main() {
     cleanupHandlers: [
       async () => {
         monitoring.logger.info('Stopping worker job processing...');
-        // Add worker cleanup logic here
+        await workerService.stop();
+        await closeRedisConnections();
       },
     ],
   });
@@ -74,7 +99,34 @@ async function main() {
 
   const imageProcessor = new ImageProcessor(storageConfig, monitoring);
 
-  await simulateJobProcessing(monitoring, imageProcessor);
+  // Register processors
+  const exampleProcessor = new ExampleProcessor({ monitoring });
+  workerService.registerProcessor({
+    queueName: QueueName.IMAGE_PROCESSING,
+    processor: exampleProcessor,
+    concurrency: config.workerConcurrency,
+  });
+
+  // Start worker service
+  await workerService.start();
+
+  monitoring.logger.info(
+    {
+      registeredQueues: workerService.getRegisteredQueues(),
+    },
+    'Worker service is now processing jobs'
+  );
+
+  // Log health status periodically
+  setInterval(() => {
+    const healthReport = workerService.getHealthReport();
+    monitoring.logger.info(healthReport, 'Worker health status');
+  }, 60000); // Every minute
+
+  // Keep the legacy simulation for testing
+  if (config.nodeEnv === 'development') {
+    await simulateJobProcessing(monitoring, imageProcessor);
+  }
 }
 
 async function simulateJobProcessing(

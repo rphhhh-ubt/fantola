@@ -117,6 +117,13 @@ export class I18n {
   }
 
   /**
+   * Get channel verification messages
+   */
+  get channelVerification() {
+    return this.messages.channelVerification;
+  }
+
+  /**
    * Switch to a different language
    */
   setLanguage(language: Language): void {

@@ -28,6 +28,7 @@ export function getBotConfig(): BotConfig {
       
       // Bot-specific config
       telegramBotToken: process.env.TELEGRAM_BOT_TOKEN,
+      telegramChannelId: process.env.TELEGRAM_CHANNEL_ID,
       telegramWebhookDomain: process.env.TELEGRAM_WEBHOOK_DOMAIN,
       telegramWebhookPath: process.env.TELEGRAM_WEBHOOK_PATH,
       telegramWebhookUrl: process.env.TELEGRAM_WEBHOOK_URL,

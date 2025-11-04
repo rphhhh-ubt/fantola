@@ -1,5 +1,6 @@
 import { CommandContext } from 'grammy';
 import { BotContext } from '../types';
+import { SubscriptionTier } from '@monorepo/database';
 
 /**
  * Handle /profile command
@@ -22,6 +23,25 @@ export async function handleProfile(ctx: CommandContext<BotContext>): Promise<vo
       : i18n.commands.profile.statusExpired
     : i18n.commands.profile.statusNone;
 
+  // Check channel subscription status for Gift tier users
+  let channelStatus = '';
+  if (user.tier === SubscriptionTier.Gift && ctx.channelVerification) {
+    const telegramId = parseInt(user.telegramId);
+    const membershipResult = await ctx.channelVerification.checkMembership(telegramId);
+    
+    const statusText = membershipResult.isMember 
+      ? i18n.channelVerification.status.subscribed
+      : i18n.channelVerification.status.notSubscribed;
+    
+    channelStatus = `\n\n📢 *${i18n.channelVerification.subscriptionRequired}*\n${statusText}`;
+    
+    // Add warning if not subscribed
+    if (!membershipResult.isMember) {
+      const channel = ctx.channelVerification.formatChannelForMessage();
+      channelStatus += `\n\n⚠️ ${i18n.t('channelVerification.notSubscribed', { channel })}`;
+    }
+  }
+
   const profileMessage = `
 ${i18n.commands.profile.title}
 
@@ -32,7 +52,7 @@ ${i18n.commands.profile.telegramId} ${user.telegramId}
 ${i18n.commands.profile.subscriptionTitle}
 
 ${i18n.commands.profile.currentTier} ${user.tier}
-${i18n.commands.profile.status} ${subscriptionStatus}
+${i18n.commands.profile.status} ${subscriptionStatus}${channelStatus}
 
 ${i18n.commands.profile.tokenBalanceTitle}
 

@@ -6,6 +6,7 @@ import {
   awardGiftTokens,
 } from '../services/onboarding-service';
 import { I18n } from '../i18n';
+import { ChannelVerificationService } from '../services/channel-verification-service';
 
 // Mock the database
 jest.mock('@monorepo/shared', () => ({
@@ -350,6 +351,219 @@ describe('Onboarding Service', () => {
 
       // Just verify message is returned
       expect(result.message).toBeDefined();
+    });
+  });
+
+  describe('Channel Verification Integration', () => {
+    let mockChannelService: jest.Mocked<ChannelVerificationService>;
+
+    beforeEach(() => {
+      mockChannelService = {
+        checkMembership: jest.fn(),
+        formatChannelForMessage: jest.fn().mockReturnValue('@test_channel'),
+      } as any;
+    });
+
+    it('should award tokens to new Gift user if channel verification passes', async () => {
+      const newGiftUser = {
+        id: 'user-1',
+        telegramId: '123456',
+        username: 'testuser',
+        firstName: 'Test',
+        tier: SubscriptionTier.Gift,
+        tokensBalance: 0,
+        tokensSpent: 0,
+        lastGiftClaimAt: null,
+      } as any;
+
+      const updatedUser = {
+        ...newGiftUser,
+        tokensBalance: 100,
+        lastGiftClaimAt: new Date(),
+      };
+
+      mockChannelService.checkMembership.mockResolvedValue({
+        isMember: true,
+        status: 'member',
+      });
+
+      (db.$transaction as jest.Mock).mockImplementation(async (callback) => {
+        return await callback({
+          user: {
+            findUnique: jest.fn().mockResolvedValue(newGiftUser),
+            update: jest.fn().mockResolvedValue(updatedUser),
+          },
+          tokenOperation: {
+            create: jest.fn().mockResolvedValue({}),
+          },
+        });
+      });
+
+      const result = await processUserOnboarding(newGiftUser, i18n, mockChannelService);
+
+      expect(result.isNewUser).toBe(true);
+      expect(result.tokensAwarded).toBe(100);
+      expect(result.channelCheckRequired).toBe(true);
+      expect(result.channelCheckPassed).toBe(true);
+      expect(mockChannelService.checkMembership).toHaveBeenCalledWith(123456);
+    });
+
+    it('should not award tokens if user is not subscribed to channel', async () => {
+      const newGiftUser = {
+        id: 'user-1',
+        telegramId: '123456',
+        username: 'testuser',
+        firstName: 'Test',
+        tier: SubscriptionTier.Gift,
+        tokensBalance: 0,
+        lastGiftClaimAt: null,
+      } as any;
+
+      mockChannelService.checkMembership.mockResolvedValue({
+        isMember: false,
+        status: 'left',
+      });
+
+      const result = await processUserOnboarding(newGiftUser, i18n, mockChannelService);
+
+      expect(result.isNewUser).toBe(false);
+      expect(result.tokensAwarded).toBe(0);
+      expect(result.channelCheckRequired).toBe(true);
+      expect(result.channelCheckPassed).toBe(false);
+      expect(result.message).toContain('channel');
+    });
+
+    it('should not award tokens if channel verification fails', async () => {
+      const newGiftUser = {
+        id: 'user-1',
+        telegramId: '123456',
+        tier: SubscriptionTier.Gift,
+        tokensBalance: 0,
+        lastGiftClaimAt: null,
+      } as any;
+
+      mockChannelService.checkMembership.mockResolvedValue({
+        isMember: false,
+        error: 'api_error',
+        errorMessage: 'Network error',
+      });
+
+      const result = await processUserOnboarding(newGiftUser, i18n, mockChannelService);
+
+      expect(result.tokensAwarded).toBe(0);
+      expect(result.channelCheckRequired).toBe(true);
+      expect(result.channelCheckPassed).toBe(false);
+    });
+
+    it('should skip channel check for Professional tier users', async () => {
+      const professionalUser = {
+        id: 'user-1',
+        telegramId: '123456',
+        tier: SubscriptionTier.Professional,
+        tokensBalance: 2000,
+        lastGiftClaimAt: null,
+      } as any;
+
+      const result = await processUserOnboarding(professionalUser, i18n, mockChannelService);
+
+      expect(result.channelCheckRequired).toBe(false);
+      expect(mockChannelService.checkMembership).not.toHaveBeenCalled();
+    });
+
+    it('should work without channel service (backwards compatibility)', async () => {
+      const newGiftUser = {
+        id: 'user-1',
+        telegramId: '123456',
+        tier: SubscriptionTier.Gift,
+        tokensBalance: 0,
+        lastGiftClaimAt: null,
+      } as any;
+
+      const updatedUser = {
+        ...newGiftUser,
+        tokensBalance: 100,
+        lastGiftClaimAt: new Date(),
+      };
+
+      (db.$transaction as jest.Mock).mockImplementation(async (callback) => {
+        return await callback({
+          user: {
+            findUnique: jest.fn().mockResolvedValue(newGiftUser),
+            update: jest.fn().mockResolvedValue(updatedUser),
+          },
+          tokenOperation: {
+            create: jest.fn().mockResolvedValue({}),
+          },
+        });
+      });
+
+      const result = await processUserOnboarding(newGiftUser, i18n);
+
+      expect(result.tokensAwarded).toBe(100);
+      expect(result.channelCheckRequired).toBe(false);
+    });
+
+    it('should handle rate limit error gracefully', async () => {
+      const giftUser = {
+        id: 'user-1',
+        telegramId: '123456',
+        tier: SubscriptionTier.Gift,
+        tokensBalance: 0,
+        lastGiftClaimAt: null,
+      } as any;
+
+      mockChannelService.checkMembership.mockResolvedValue({
+        isMember: false,
+        error: 'rate_limit',
+        errorMessage: 'Rate limit exceeded',
+      });
+
+      const result = await processUserOnboarding(giftUser, i18n, mockChannelService);
+
+      expect(result.tokensAwarded).toBe(0);
+      expect(result.message).toContain('limit');
+    });
+
+    it('should check channel for monthly renewal', async () => {
+      const thirtyOneDaysAgo = new Date();
+      thirtyOneDaysAgo.setDate(thirtyOneDaysAgo.getDate() - 31);
+
+      const returningUser = {
+        id: 'user-1',
+        telegramId: '123456',
+        tier: SubscriptionTier.Gift,
+        tokensBalance: 10,
+        lastGiftClaimAt: thirtyOneDaysAgo,
+      } as any;
+
+      const updatedUser = {
+        ...returningUser,
+        tokensBalance: 110,
+        lastGiftClaimAt: new Date(),
+      };
+
+      mockChannelService.checkMembership.mockResolvedValue({
+        isMember: true,
+        status: 'member',
+      });
+
+      (db.$transaction as jest.Mock).mockImplementation(async (callback) => {
+        return await callback({
+          user: {
+            findUnique: jest.fn().mockResolvedValue(returningUser),
+            update: jest.fn().mockResolvedValue(updatedUser),
+          },
+          tokenOperation: {
+            create: jest.fn().mockResolvedValue({}),
+          },
+        });
+      });
+
+      const result = await processUserOnboarding(returningUser, i18n, mockChannelService);
+
+      expect(result.tokensAwarded).toBe(100);
+      expect(result.channelCheckPassed).toBe(true);
+      expect(mockChannelService.checkMembership).toHaveBeenCalledWith(123456);
     });
   });
 });

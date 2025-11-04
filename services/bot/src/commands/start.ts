@@ -21,8 +21,12 @@ export async function handleStart(
   }
 
   try {
-    // Process onboarding (awards tokens if eligible)
-    const onboardingResult = await processUserOnboarding(user, i18n);
+    // Process onboarding (awards tokens if eligible, checks channel if configured)
+    const onboardingResult = await processUserOnboarding(
+      user,
+      i18n,
+      ctx.channelVerification
+    );
 
     // Track active user KPI
     monitoring.trackKPI({
@@ -44,6 +48,15 @@ export async function handleStart(
         isNewUser: onboardingResult.isNewUser,
         newBalance: onboardingResult.user.tokensBalance,
       }, 'Gift tokens awarded to user');
+    }
+
+    // Log channel verification result if performed
+    if (onboardingResult.channelCheckRequired !== undefined) {
+      monitoring.logger.info({
+        userId: user.id,
+        channelCheckRequired: onboardingResult.channelCheckRequired,
+        channelCheckPassed: onboardingResult.channelCheckPassed,
+      }, 'Channel verification performed');
     }
 
     // Update context with latest user data

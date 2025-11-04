@@ -76,6 +76,7 @@ export const apiConfigSchema = baseConfigSchema.extend({
 // Bot configuration schema
 export const botConfigSchema = baseConfigSchema.extend({
   telegramBotToken: z.string().min(1, 'TELEGRAM_BOT_TOKEN is required'),
+  telegramChannelId: z.string().optional(),
   telegramWebhookDomain: z.string().optional(),
   telegramWebhookPath: z.string().default('/webhook/telegram'),
   telegramWebhookUrl: z.string().optional(),

@@ -151,10 +151,11 @@ export const ru: Messages = {
     error: '❌ Произошла ошибка. Пожалуйста, попробуйте снова.',
     loading: '⏳ Обработка...',
     success: '✅ Успешно!',
-    insufficientTokens: '❌ Недостаточно токенов. Требуется *{required}* токенов.\n\nТекущий баланс: *{current}* токенов\n\nОбновите план: /subscription',
-    rateLimitExceeded: '⚠️ Превышен лимит запросов. Попробуйте снова через *{seconds}* секунд.',
+    insufficientTokens: '❌ Недостаточно токенов. Требуется *{required}* токенов, но у вас *{available}* токенов.\n\nОбновите план: /subscription',
+    rateLimitExceeded: '⚠️ Превышен лимит запросов. Попробуйте снова позже.',
     profileError: 'Не удалось загрузить профиль. Попробуйте снова.',
     tokens: 'токенов',
+    aiError: '❌ Ошибка ИИ: {error}',
   },
 
   // Channel verification messages

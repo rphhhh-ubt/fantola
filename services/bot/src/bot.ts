@@ -5,6 +5,13 @@ import { BotContext, SessionData, BotInitConfig } from './types';
 import { RedisSessionAdapter } from './session-adapter';
 import { Monitoring } from '@monorepo/monitoring';
 import { ChannelVerificationService, PaymentService, YooKassaConfig } from './services';
+import { AIService } from './services/ai-service';
+import { RateLimitTracker } from './services/rate-limit-tracker';
+import { ChatHandler } from './handlers/chat-handler';
+import { PhotoHandler } from './handlers/photo-handler';
+import { GroqClient } from './clients/groq-client';
+import { GeminiClient } from './clients/gemini-client';
+import { TokenService, db } from '@monorepo/shared';
 import {
   authMiddleware,
   createErrorHandler,
@@ -19,6 +26,15 @@ import {
 } from './commands';
 import { handleTextMessage, handleCallbackQuery } from './handlers';
 
+export interface AIConfig {
+  groqApiKey: string;
+  groqModel?: string;
+  groqMaxTokens?: number;
+  geminiApiKey: string;
+  geminiModel?: string;
+  geminiMaxTokens?: number;
+}
+
 /**
  * Initialize and configure Grammy bot with all middleware and handlers
  */
@@ -26,6 +42,7 @@ export function createBot(
   token: string,
   redis: Redis,
   monitoring: Monitoring,
+  aiConfig: AIConfig,
   channelId?: string,
   yookassaConfig?: YooKassaConfig
 ): Bot<BotContext> {
@@ -40,6 +57,46 @@ export function createBot(
   const paymentService = yookassaConfig
     ? new PaymentService(yookassaConfig, monitoring)
     : undefined;
+
+  // Initialize AI clients
+  const groqClient = new GroqClient({
+    apiKey: aiConfig.groqApiKey,
+    model: aiConfig.groqModel,
+    maxTokens: aiConfig.groqMaxTokens,
+    monitoring,
+  });
+
+  const geminiClient = new GeminiClient({
+    apiKey: aiConfig.geminiApiKey,
+    model: aiConfig.geminiModel,
+    maxTokens: aiConfig.geminiMaxTokens,
+    monitoring,
+  });
+
+  // Initialize rate limit tracker
+  const rateLimitTracker = new RateLimitTracker(redis, monitoring);
+
+  // Initialize AI service
+  const aiService = new AIService({
+    groqClient,
+    geminiClient,
+    rateLimitTracker,
+    monitoring,
+  });
+
+  // Initialize token service
+  const tokenService = new TokenService(db);
+
+  // Initialize chat and photo handlers
+  const chatHandler = new ChatHandler({
+    aiService,
+    tokenService,
+  });
+
+  const photoHandler = new PhotoHandler({
+    aiService,
+    tokenService,
+  });
 
   // Set up session storage with Redis
   const sessionAdapter = new RedisSessionAdapter(redis, {
@@ -81,6 +138,13 @@ export function createBot(
     });
   }
 
+  // Inject AI handlers into context
+  bot.use(async (ctx, next) => {
+    ctx.chatHandler = chatHandler;
+    ctx.photoHandler = photoHandler;
+    await next();
+  });
+
   // Auth middleware - loads user from database
   bot.use(authMiddleware());
 
@@ -98,10 +162,19 @@ export function createBot(
   // Handle text messages (keyboard buttons)
   bot.on('message:text', handleTextMessage);
 
+  // Handle photo messages
+  bot.on('message:photo', async (ctx) => {
+    if (ctx.photoHandler) {
+      await ctx.photoHandler.handle(ctx);
+    } else {
+      await ctx.reply('Photo handler not available');
+    }
+  });
+
   // Handle unsupported message types
   bot.on('message', async (ctx) => {
     await ctx.reply(
-      '❓ Sorry, I only support text messages at the moment. Please use the menu buttons.'
+      '❓ Sorry, I only support text and photo messages. Please use the menu buttons or send a photo.'
     );
   });
 

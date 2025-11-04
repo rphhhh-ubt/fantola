@@ -52,10 +52,20 @@ async function main() {
         }
       : undefined;
 
+  const aiConfig = {
+    groqApiKey: config.groqApiKey,
+    groqModel: config.groqModel,
+    groqMaxTokens: config.groqMaxTokens,
+    geminiApiKey: config.geminiApiKey,
+    geminiModel: config.geminiModel,
+    geminiMaxTokens: config.geminiMaxTokens,
+  };
+
   const bot = createBot(
     config.telegramBotToken,
     redis,
     monitoring,
+    aiConfig,
     config.telegramChannelId,
     yookassaConfig
   );

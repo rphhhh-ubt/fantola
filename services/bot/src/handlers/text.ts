@@ -33,10 +33,15 @@ export async function handleTextMessage(ctx: BotContext): Promise<void> {
   } else if (isButtonMatch(text, buttons.backToMenu)) {
     await handleBackToMenu(ctx);
   } else {
-    // Unknown message
-    await ctx.reply(i18n.common.unknownCommand, {
-      reply_markup: buildMainMenuKeyboard(i18n),
-    });
+    // Not a button - treat as chat message
+    if (ctx.chatHandler) {
+      await ctx.chatHandler.handle(ctx, text);
+    } else {
+      // Fallback if chat handler not available
+      await ctx.reply(i18n.common.unknownCommand, {
+        reply_markup: buildMainMenuKeyboard(i18n),
+      });
+    }
   }
 }
 

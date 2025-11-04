@@ -149,10 +149,11 @@ export const en = {
     error: '❌ An error occurred. Please try again.',
     loading: '⏳ Processing...',
     success: '✅ Success!',
-    insufficientTokens: '❌ Insufficient tokens. You need *{required}* tokens.\n\nCurrent balance: *{current}* tokens\n\nUpgrade your plan: /subscription',
-    rateLimitExceeded: '⚠️ Rate limit exceeded. Please try again in *{seconds}* seconds.',
+    insufficientTokens: '❌ Insufficient tokens. You need *{required}* tokens but have *{available}* tokens.\n\nUpgrade your plan: /subscription',
+    rateLimitExceeded: '⚠️ Rate limit exceeded. Please try again later.',
     profileError: 'Unable to load profile. Please try again.',
     tokens: 'tokens',
+    aiError: '❌ AI Error: {error}',
   },
 
   // Channel verification messages

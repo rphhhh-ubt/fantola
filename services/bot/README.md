@@ -361,10 +361,106 @@ await tokenBilling.deductTokens(userId, 'chatgpt_message');
 - Ensure Redis has sufficient memory
 - Check session TTL (default: 1 hour)
 
+## AI Integration
+
+### Overview
+
+The bot integrates two free AI providers:
+
+- **Groq API**: Fast text chat (14,400 requests/day, 300 req/min)
+- **Gemini Flash**: Vision + text (1,500 requests/day, 15 req/min)
+
+### Environment Variables
+
+```bash
+# Groq API (Fast text chat)
+GROQ_API_KEY=your_groq_api_key_from_console.groq.com
+GROQ_MODEL=llama-3.1-70b-versatile
+GROQ_MAX_TOKENS=2048
+
+# Gemini API (Vision + text)
+GEMINI_API_KEY=your_gemini_api_key_from_aistudio.google.com
+GEMINI_MODEL=gemini-1.5-flash
+GEMINI_MAX_TOKENS=2048
+```
+
+### Getting API Keys
+
+#### Groq API Key
+1. Visit https://console.groq.com/
+2. Sign up for free account
+3. Navigate to API Keys section
+4. Create new API key
+5. Copy key to `GROQ_API_KEY`
+
+#### Gemini API Key
+1. Visit https://aistudio.google.com/
+2. Sign in with Google account
+3. Click "Get API Key"
+4. Create new project or use existing
+5. Copy key to `GEMINI_API_KEY`
+
+### Provider Selection Logic
+
+- **Text-only messages** → Routed to Groq (Llama 3.1 70B)
+- **Messages with photos** → Routed to Gemini Flash (vision support)
+- **Token billing**: 5 tokens per message (regardless of provider)
+
+### Rate Limits
+
+**Groq API:**
+- Daily: 14,400 requests
+- Per minute: 300 requests
+- Warning: 90% usage threshold
+
+**Gemini Flash:**
+- Daily: 1,500 requests
+- Per minute: 15 requests
+- Warning: 90% usage threshold
+
+Rate limits are tracked in Redis with daily reset at 00:00 UTC.
+
+### Usage Examples
+
+**Text chat:**
+```
+User: What is the capital of France?
+Bot: (Groq) The capital of France is Paris...
+```
+
+**Photo analysis:**
+```
+User: [sends photo] What do you see?
+Bot: (Gemini) I can see a beautiful landscape with...
+```
+
+### Error Handling
+
+- Rate limit errors: User-friendly message with retry time
+- API errors: Automatic error normalization
+- Token insufficient: Balance check before request
+- Network errors: Retry with exponential backoff
+
+### Monitoring
+
+All AI requests are tracked via monitoring package:
+
+```typescript
+monitoring.trackGenerationSuccess('groq');
+monitoring.trackGenerationFailure('gemini', 'rate_limit');
+```
+
+Metrics available:
+- `ai_generation_success{provider="groq"}`
+- `ai_generation_failure{provider="gemini",error="rate_limit"}`
+- Daily usage statistics logged
+
 ## Related Documentation
 
 - [Grammy Documentation](https://grammy.dev/)
 - [Telegram Bot API](https://core.telegram.org/bots/api)
+- [Groq API Docs](https://console.groq.com/docs/quickstart)
+- [Gemini API Docs](https://ai.google.dev/gemini-api/docs)
 - [Rate Limiting & Token Billing](../../docs/RATE_LIMITING_AND_TOKEN_BILLING.md)
 - [Database Package](../../packages/database/README.md)
 - [Monitoring Package](../../packages/monitoring/README.md)

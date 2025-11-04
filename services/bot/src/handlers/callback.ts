@@ -11,7 +11,6 @@ export async function handleCallbackQuery(
   paymentService: PaymentService
 ): Promise<void> {
   const data = ctx.callbackQuery.data;
-  const i18n = ctx.i18n;
 
   if (!data) {
     await ctx.answerCallbackQuery('Invalid callback data');
@@ -113,8 +112,13 @@ async function handleTierPurchase(
     });
 
     // Edit original message to show processing started
-    await ctx.editMessageReplyMarkup({ inline_keyboard: [] });
+    await ctx.api.editMessageReplyMarkup(
+      ctx.chat!.id,
+      ctx.callbackQuery.message!.message_id,
+      { reply_markup: { inline_keyboard: [] } }
+    );
   } catch (error) {
+    const i18n = ctx.i18n;
     await ctx.reply(
       i18n.language === 'ru'
         ? '❌ Ошибка при создании платежа. Пожалуйста, попробуйте позже.'

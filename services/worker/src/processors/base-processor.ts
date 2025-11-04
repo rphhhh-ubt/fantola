@@ -1,42 +1,69 @@
 import type { Job } from 'bullmq';
 import type { Monitoring } from '@monorepo/monitoring';
-import { db } from '@monorepo/shared';
+import { db, TokenService } from '@monorepo/shared';
 import type {
   JobData,
   JobResult,
   JobProcessor,
   QueueName,
 } from '@monorepo/shared';
-import { GenerationStatus } from '@monorepo/database';
+import { GenerationStatus, OperationType } from '@monorepo/database';
 
 /**
  * Processing context with database and monitoring
  */
 export interface ProcessorContext {
   monitoring: Monitoring;
+  tokenService?: TokenService;
+}
+
+/**
+ * Token deduction options for processors
+ */
+export interface TokenDeductionConfig {
+  enabled: boolean;
+  operationType: OperationType;
+  amount?: number;
+  skipDeductionOnFailure?: boolean;
 }
 
 /**
  * Abstract base processor for all job types
- * Provides common functionality for status updates, retries, and dead-letter handling
+ * Provides common functionality for status updates, retries, token deduction with rollback, and dead-letter handling
  */
 export abstract class BaseProcessor<T extends JobData = JobData> {
   protected monitoring: Monitoring;
   protected queueName: QueueName;
+  protected tokenService: TokenService;
 
   constructor(queueName: QueueName, context: ProcessorContext) {
     this.queueName = queueName;
     this.monitoring = context.monitoring;
+    this.tokenService = context.tokenService || new TokenService(db);
+  }
+
+  /**
+   * Get token deduction configuration for this processor
+   * Override this method to customize token deduction behavior
+   */
+  protected getTokenDeductionConfig(): TokenDeductionConfig {
+    return {
+      enabled: false,
+      operationType: 'image_generation' as OperationType,
+    };
   }
 
   /**
    * Main job processor function
-   * Wraps the actual processing with status updates and error handling
+   * Wraps the actual processing with status updates, token deduction with rollback, and error handling
    */
   getProcessor(): JobProcessor<T> {
     return async (job: Job<T, JobResult>): Promise<JobResult> => {
       const jobId = job.id || 'unknown';
       const startTime = Date.now();
+      const tokenConfig = this.getTokenDeductionConfig();
+      let tokenLedgerEntryId: string | undefined;
+      let tokensDeducted = false;
 
       this.monitoring.logger.info(
         {
@@ -44,6 +71,7 @@ export abstract class BaseProcessor<T extends JobData = JobData> {
           queue: this.queueName,
           attempt: job.attemptsMade,
           data: job.data,
+          tokenDeduction: tokenConfig.enabled,
         },
         'Processing job'
       );
@@ -58,6 +86,42 @@ export abstract class BaseProcessor<T extends JobData = JobData> {
         const processingTime = Date.now() - startTime;
 
         if (result.success) {
+          // Deduct tokens ONLY after successful processing
+          if (tokenConfig.enabled && (job.data as any).userId) {
+            const deductionResult = await this.deductTokens(
+              (job.data as any).userId,
+              tokenConfig,
+              { jobId, queue: this.queueName }
+            );
+
+            if (deductionResult.success) {
+              tokensDeducted = true;
+              tokenLedgerEntryId = deductionResult.ledgerEntryId;
+
+              this.monitoring.logger.info(
+                {
+                  jobId,
+                  userId: (job.data as any).userId,
+                  tokensDeducted: deductionResult.amount,
+                  newBalance: deductionResult.newBalance,
+                  ledgerEntryId: tokenLedgerEntryId,
+                },
+                'Tokens deducted after successful processing'
+              );
+            } else {
+              this.monitoring.logger.error(
+                {
+                  jobId,
+                  userId: (job.data as any).userId,
+                  error: deductionResult.error,
+                },
+                'Token deduction failed after successful processing'
+              );
+
+              throw new Error(`Token deduction failed: ${deductionResult.error}`);
+            }
+          }
+
           // Update status to completed
           await this.updateStatus(job, GenerationStatus.completed, result.data);
 
@@ -66,16 +130,40 @@ export abstract class BaseProcessor<T extends JobData = JobData> {
               jobId,
               queue: this.queueName,
               processingTimeMs: processingTime,
+              tokensDeducted,
             },
             'Job completed successfully'
           );
 
           this.monitoring.trackKPI({
             type: 'generation_success',
-            data: { type: this.queueName },
+            data: { type: this.queueName, tokensDeducted },
           });
         } else {
-          // Handle failed job
+          // Handle failed job (no token deduction for failed jobs unless configured)
+          if (tokenConfig.enabled && !tokenConfig.skipDeductionOnFailure && (job.data as any).userId) {
+            const deductionResult = await this.deductTokens(
+              (job.data as any).userId,
+              tokenConfig,
+              { jobId, queue: this.queueName, failed: true }
+            );
+
+            if (deductionResult.success) {
+              tokensDeducted = true;
+              tokenLedgerEntryId = deductionResult.ledgerEntryId;
+
+              this.monitoring.logger.info(
+                {
+                  jobId,
+                  userId: (job.data as any).userId,
+                  tokensDeducted: deductionResult.amount,
+                  newBalance: deductionResult.newBalance,
+                },
+                'Tokens deducted for failed job (configured to deduct on failure)'
+              );
+            }
+          }
+
           await this.handleFailure(job, new Error(result.error?.message || 'Job failed'));
         }
 
@@ -94,6 +182,16 @@ export abstract class BaseProcessor<T extends JobData = JobData> {
           },
           'Job processing failed'
         );
+
+        // Rollback tokens if they were deducted
+        if (tokensDeducted && tokenLedgerEntryId && (job.data as any).userId) {
+          await this.rollbackTokens(
+            (job.data as any).userId,
+            tokenConfig,
+            tokenLedgerEntryId,
+            { jobId, error: err.message }
+          );
+        }
 
         // Handle job failure
         await this.handleFailure(job, err);
@@ -267,5 +365,188 @@ export abstract class BaseProcessor<T extends JobData = JobData> {
       },
       'Job progress updated'
     );
+  }
+
+  /**
+   * Deduct tokens from user's balance
+   */
+  protected async deductTokens(
+    userId: string,
+    tokenConfig: TokenDeductionConfig,
+    metadata?: Record<string, unknown>
+  ): Promise<{
+    success: boolean;
+    amount?: number;
+    newBalance?: number;
+    ledgerEntryId?: string;
+    error?: string;
+  }> {
+    try {
+      const amount = tokenConfig.amount || this.tokenService.getOperationCost(tokenConfig.operationType);
+
+      this.monitoring.logger.debug(
+        {
+          userId,
+          operationType: tokenConfig.operationType,
+          amount,
+          metadata,
+        },
+        'Deducting tokens'
+      );
+
+      const result = await this.tokenService.debit(userId, {
+        operationType: tokenConfig.operationType,
+        amount,
+        allowOverdraft: false,
+        metadata,
+      });
+
+      if (result.success) {
+        this.monitoring.logger.info(
+          {
+            userId,
+            amount,
+            newBalance: result.newBalance,
+            ledgerEntryId: result.ledgerEntryId,
+          },
+          'Token deduction successful'
+        );
+
+        return {
+          success: true,
+          amount,
+          newBalance: result.newBalance,
+          ledgerEntryId: result.ledgerEntryId,
+        };
+      } else {
+        this.monitoring.logger.error(
+          {
+            userId,
+            amount,
+            error: result.error,
+          },
+          'Token deduction failed'
+        );
+
+        this.monitoring.alerts.alertQueueFailure(
+          this.queueName,
+          new Error(`Token deduction failed: ${result.error}`),
+          { userId, amount }
+        );
+
+        return {
+          success: false,
+          error: result.error,
+        };
+      }
+    } catch (error) {
+      const err = error as Error;
+      this.monitoring.logger.error(
+        {
+          err,
+          userId,
+        },
+        'Exception during token deduction'
+      );
+
+      return {
+        success: false,
+        error: err.message,
+      };
+    }
+  }
+
+  /**
+   * Rollback token deduction in case of processing failure
+   */
+  protected async rollbackTokens(
+    userId: string,
+    tokenConfig: TokenDeductionConfig,
+    originalLedgerEntryId: string,
+    metadata?: Record<string, unknown>
+  ): Promise<void> {
+    try {
+      const amount = tokenConfig.amount || this.tokenService.getOperationCost(tokenConfig.operationType);
+
+      this.monitoring.logger.warn(
+        {
+          userId,
+          amount,
+          originalLedgerEntryId,
+          metadata,
+        },
+        'Rolling back token deduction'
+      );
+
+      const result = await this.tokenService.credit(userId, {
+        operationType: 'refund',
+        amount,
+        metadata: {
+          ...metadata,
+          rollback: true,
+          originalLedgerEntryId,
+          reason: 'Processing failure after token deduction',
+        },
+      });
+
+      if (result.success) {
+        this.monitoring.logger.info(
+          {
+            userId,
+            amount,
+            newBalance: result.newBalance,
+            ledgerEntryId: result.ledgerEntryId,
+          },
+          'Token rollback successful'
+        );
+
+        this.monitoring.trackKPI({
+          type: 'token_rollback',
+          data: {
+            userId,
+            amount,
+            queue: this.queueName,
+          },
+        });
+      } else {
+        this.monitoring.logger.error(
+          {
+            userId,
+            amount,
+            error: result.error,
+          },
+          'Token rollback failed - CRITICAL'
+        );
+
+        this.monitoring.alerts.alertQueueFailure(
+          this.queueName,
+          new Error(`Token rollback failed: ${result.error}`),
+          {
+            userId,
+            amount,
+            originalLedgerEntryId,
+            severity: 'critical',
+          }
+        );
+      }
+    } catch (error) {
+      const err = error as Error;
+      this.monitoring.logger.error(
+        {
+          err,
+          userId,
+        },
+        'Exception during token rollback - CRITICAL'
+      );
+
+      this.monitoring.alerts.alertQueueFailure(
+        this.queueName,
+        new Error(`Token rollback exception: ${err.message}`),
+        {
+          userId,
+          severity: 'critical',
+        }
+      );
+    }
   }
 }

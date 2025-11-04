@@ -1,8 +1,8 @@
 import { Job } from 'bullmq';
 import { Monitoring } from '@monorepo/monitoring';
 import { db } from '@monorepo/database';
-import { BaseProcessor } from './base-processor';
-import { SoraGenerationJobData } from '@monorepo/shared';
+import { BaseProcessor, TokenDeductionConfig } from './base-processor';
+import { SoraGenerationJobData, QueueName } from '@monorepo/shared';
 import { StorageAdapter, StorageConfig } from '../storage';
 import { StorageFactory } from '../storage/storage-factory';
 import sharp from 'sharp';
@@ -13,12 +13,20 @@ export interface SoraProcessorConfig {
   storageConfig: StorageConfig;
 }
 
-export class SoraProcessor extends BaseProcessor<SoraGenerationJobData, any> {
+export class SoraProcessor extends BaseProcessor<SoraGenerationJobData> {
   private storage: StorageAdapter;
 
   constructor(config: SoraProcessorConfig) {
-    super(config);
+    super(QueueName.SORA_GENERATION, config);
     this.storage = StorageFactory.createAdapter(config.storageConfig);
+  }
+
+  protected getTokenDeductionConfig(): TokenDeductionConfig {
+    return {
+      enabled: true,
+      operationType: 'sora_image',
+      skipDeductionOnFailure: true,
+    };
   }
 
   async process(job: Job<SoraGenerationJobData>): Promise<any> {

@@ -7,6 +7,7 @@ Telegram bot service built with Grammy framework, featuring session management, 
 - 🤖 **Grammy Framework**: Modern, type-safe Telegram Bot framework
 - 💾 **Redis Sessions**: Persistent session storage with automatic cleanup
 - 🔐 **User Authentication**: Automatic user registration and management
+- 🎁 **Smart Onboarding**: Monthly gift token allocation with eligibility tracking
 - 📊 **Database Integration**: Prisma ORM for user and subscription management
 - ⌨️ **Reply Keyboards**: Intuitive navigation with custom keyboards
 - 🔄 **Dual Mode**: Supports both polling (dev) and webhook (production)
@@ -24,12 +25,15 @@ src/
 ├── session-adapter.ts  # Redis session storage adapter
 ├── keyboards.ts        # Reply keyboard builders
 ├── commands/           # Command handlers
-│   ├── start.ts       # /start command
+│   ├── start.ts       # /start command with onboarding
 │   ├── help.ts        # /help command
 │   ├── profile.ts     # /profile command
 │   └── subscription.ts # /subscription command
 ├── handlers/           # Message handlers
 │   └── text.ts        # Text message (keyboard) handler
+├── services/           # Business logic services
+│   ├── onboarding-service.ts  # User onboarding & gift tokens
+│   └── index.ts       # Service exports
 └── middleware/         # Bot middleware
     ├── auth.ts        # User authentication
     ├── error.ts       # Global error handling
@@ -165,15 +169,45 @@ interface SessionData {
 
 Sessions automatically expire after **1 hour** of inactivity.
 
-## User Authentication
+## User Authentication & Onboarding
 
-The bot automatically handles user authentication:
+The bot automatically handles user authentication and onboarding:
+
+### Authentication Flow
 
 1. User sends message → Auth middleware triggers
 2. Middleware checks if user exists in database (by Telegram ID)
-3. If new user → Creates account with **Gift tier** (100 tokens)
+3. If new user → Creates account with **Gift tier** (0 tokens initially)
 4. If existing user → Loads from database
 5. User object attached to context: `ctx.user`
+
+### Onboarding Flow (`/start` command)
+
+The `/start` command intelligently handles both new and returning users:
+
+**New Users (Gift Tier)**
+- Receives **100 free tokens** immediately
+- Gets welcome message with feature overview
+- Prompted to subscribe to channel (required for Gift tier)
+- `lastGiftClaimAt` timestamp recorded
+
+**Returning Users - Monthly Renewal**
+- If 30+ days since last gift claim → Receives **100 tokens**
+- Gets renewal confirmation message
+- `lastGiftClaimAt` updated to current date
+
+**Returning Users - Same Month**
+- No token award (already claimed this month)
+- Shows days until next monthly renewal
+- Displays current token balance
+
+**Paid Tier Users (Professional/Business)**
+- No automatic gift tokens (managed separately)
+- Shows current balance and subscription status
+
+All token awards are logged in `token_operations` table for audit trail.
+
+For detailed implementation, see [User Onboarding Documentation](../../docs/USER_ONBOARDING.md).
 
 ## Error Handling
 

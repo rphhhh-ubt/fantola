@@ -17,7 +17,11 @@ monorepo/
 │   └── worker/       # Background worker service
 ├── packages/
 │   ├── config/       # Shared configuration utilities
-│   └── shared/       # Shared types, utilities, and business logic
+│   ├── database/     # Prisma ORM and database schema
+│   ├── monitoring/   # Monitoring, logging, and analytics
+│   ├── rate-limit/   # Rate limiting and token billing
+│   ├── shared/       # Shared types, utilities, and business logic
+│   └── test-utils/   # Testing utilities and mocks
 ```
 
 ## 📦 Services
@@ -43,6 +47,16 @@ Centralized configuration management with dotenv-flow and zod validation:
 
 See [Config Package](packages/config/README.md) for detailed documentation.
 
+### Database (`packages/database`)
+Prisma ORM layer for PostgreSQL with type-safe database access:
+- **Prisma Client**: Type-safe database queries with auto-generated types
+- **Migrations**: Version-controlled schema changes with migration files
+- **Seeding**: Automated seed scripts for subscription tiers and test data
+- **Models**: Users, Subscriptions, Generations, Payments, ChatMessages
+- **Relations**: Properly defined foreign keys and cascading deletes
+
+See [Database Package](packages/database/README.md) and [Migration Workflow](docs/PRISMA_MIGRATION_WORKFLOW.md) for details.
+
 ### Shared (`packages/shared`)
 Common types, interfaces, utilities, and business logic shared between services.
 
@@ -54,6 +68,21 @@ Comprehensive monitoring, logging, and analytics package featuring:
 - **Alerting**: Built-in alert system for critical events
 
 See [Monitoring Guide](docs/MONITORING.md) and [KPI Tracking Guide](docs/KPI_TRACKING.md) for details.
+
+### Rate Limit (`packages/rate-limit`)
+Redis-based rate limiting and token billing system:
+- **Rate Limiting**: Sliding window + token bucket for anti-abuse
+- **Token Billing**: Token deduction and balance management
+- **User Caching**: Efficient caching with TTL and invalidation
+- **Subscription Tiers**: Gift (100 tokens), Professional (2000 tokens), Business (10000 tokens)
+
+See [Rate Limiting Guide](docs/RATE_LIMITING_AND_TOKEN_BILLING.md) for details.
+
+### Test Utils (`packages/test-utils`)
+Testing utilities and mocks for all services:
+- **Mocks**: Telegram Bot, OpenAI, Anthropic, Redis, PostgreSQL, S3
+- **Helpers**: waitFor, mockConsole, mockDateNow, createMockEnv
+- **Coverage**: Comprehensive test coverage with Jest
 
 ## 🛠️ Tech Stack
 
@@ -105,6 +134,32 @@ The config package uses `dotenv-flow` which supports multiple environment files:
 - `.env.test` - Test-specific config
 
 For detailed configuration documentation, see [Config Package](packages/config/README.md).
+
+### Database Setup
+
+1. **Start PostgreSQL:**
+   ```bash
+   docker compose up -d postgres
+   ```
+
+2. **Generate Prisma Client:**
+   ```bash
+   pnpm db:generate
+   ```
+
+3. **Apply migrations:**
+   ```bash
+   pnpm db:migrate:deploy
+   ```
+
+4. **Seed the database:**
+   ```bash
+   pnpm db:seed
+   ```
+
+For detailed database documentation, see:
+- [Database Package](packages/database/README.md)
+- [Migration Workflow](docs/PRISMA_MIGRATION_WORKFLOW.md)
 
 ## 🚢 Deployment
 
@@ -265,6 +320,20 @@ make test-docker       # Run tests in Docker environment
 ```
 
 For detailed testing documentation, see [Testing Guide](docs/TESTING.md).
+
+### Database Commands
+
+Manage database schema and migrations:
+```bash
+pnpm db:generate          # Generate Prisma Client
+pnpm db:migrate:dev       # Create and apply new migration
+pnpm db:migrate:deploy    # Apply pending migrations (production)
+pnpm db:migrate:reset     # Reset database and run seed
+pnpm db:seed              # Seed database with test data
+pnpm db:studio            # Open Prisma Studio (database UI)
+```
+
+For detailed database documentation, see [Migration Workflow](docs/PRISMA_MIGRATION_WORKFLOW.md).
 
 ### Cleaning
 

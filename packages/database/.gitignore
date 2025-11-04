@@ -1,0 +1,14 @@
+# Dependencies
+node_modules
+
+# Build output
+dist
+
+# Prisma
+.env
+*.db
+*.db-journal
+
+# Testing
+coverage
+*.log

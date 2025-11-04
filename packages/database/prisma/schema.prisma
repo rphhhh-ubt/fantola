@@ -1,0 +1,265 @@
+// Prisma Schema for Telegram Bot with AI Services
+// Supports subscription management, token billing, and AI generation tracking
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================================
+// ENUMS
+// ============================================================================
+
+enum SubscriptionTier {
+  Gift         // Free tier: 100 tokens/month, requires channel subscription
+  Professional // Paid tier: 2000 tokens/month, 1990₽
+  Business     // Premium tier: 10000 tokens/month, 3490₽
+}
+
+enum OperationType {
+  image_generation  // DALL-E, Stable Diffusion: 10 tokens
+  sora_image        // Sora video generation: 10 tokens
+  chatgpt_message   // ChatGPT message: 5 tokens
+  refund            // Token refund
+  purchase          // Token purchase
+  monthly_reset     // Monthly token reset for subscriptions
+}
+
+enum PaymentStatus {
+  pending
+  succeeded
+  failed
+  canceled
+  refunded
+}
+
+enum PaymentProvider {
+  yookassa
+  stripe
+  manual
+}
+
+enum GenerationTool {
+  dalle         // DALL-E image generation
+  sora          // Sora video generation
+  stable_diffusion
+  chatgpt
+}
+
+enum GenerationStatus {
+  pending
+  processing
+  completed
+  failed
+  canceled
+}
+
+// ============================================================================
+// MODELS
+// ============================================================================
+
+model User {
+  id        String   @id @default(uuid()) @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  // Telegram fields
+  telegramId String  @unique @map("telegram_id") @db.VarChar(255)
+  username   String? @db.VarChar(255)
+  firstName  String? @map("first_name") @db.VarChar(255)
+  lastName   String? @map("last_name") @db.VarChar(255)
+
+  // Subscription fields
+  tier                 SubscriptionTier @default(Gift)
+  subscriptionExpiresAt DateTime?       @map("subscription_expires_at") @db.Timestamptz
+
+  // Token billing fields
+  tokensBalance Int @default(0) @map("tokens_balance")
+  tokensSpent   Int @default(0) @map("tokens_spent")
+
+  // Channel subscription (required for Gift tier)
+  channelSubscribedAt DateTime? @map("channel_subscribed_at") @db.Timestamptz
+
+  // Relations
+  tokenOperations      TokenOperation[]
+  subscriptionHistory  SubscriptionHistory[]
+  generations          Generation[]
+  chatMessages         ChatMessage[]
+  payments             Payment[]
+
+  @@index([telegramId])
+  @@index([tier])
+  @@index([subscriptionExpiresAt])
+  @@index([channelSubscribedAt])
+  @@map("users")
+}
+
+model TokenOperation {
+  id        String   @id @default(uuid()) @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  userId        String        @map("user_id") @db.Uuid
+  operationType OperationType @map("operation_type")
+  tokensAmount  Int           @map("tokens_amount")
+  balanceBefore Int           @map("balance_before")
+  balanceAfter  Int           @map("balance_after")
+
+  // Optional metadata
+  metadata Json?
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([createdAt])
+  @@index([operationType])
+  @@map("token_operations")
+}
+
+model SubscriptionHistory {
+  id        String   @id @default(uuid()) @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  userId        String           @map("user_id") @db.Uuid
+  tier          SubscriptionTier
+  priceRubles   Int?             @map("price_rubles")
+  paymentMethod String?          @map("payment_method") @db.VarChar(50)
+  startedAt     DateTime         @map("started_at") @db.Timestamptz
+  expiresAt     DateTime?        @map("expires_at") @db.Timestamptz
+
+  // Optional metadata
+  metadata Json?
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("subscription_history")
+}
+
+model Generation {
+  id        String   @id @default(uuid()) @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  userId String @map("user_id") @db.Uuid
+  tool   GenerationTool
+  status GenerationStatus @default(pending)
+
+  // Input
+  prompt       String  @db.Text
+  negativePrompt String? @map("negative_prompt") @db.Text
+  model        String? @db.VarChar(255)
+
+  // Output
+  resultUrls   String[] @map("result_urls")
+  errorMessage String?  @map("error_message") @db.Text
+
+  // Tokens
+  tokensUsed Int @map("tokens_used")
+
+  // Processing times
+  startedAt   DateTime? @map("started_at") @db.Timestamptz
+  completedAt DateTime? @map("completed_at") @db.Timestamptz
+
+  // Optional metadata (model parameters, settings, etc.)
+  metadata Json?
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([tool])
+  @@index([status])
+  @@index([createdAt])
+  @@map("generations")
+}
+
+model ChatMessage {
+  id        String   @id @default(uuid()) @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  userId String @map("user_id") @db.Uuid
+  role   String @db.VarChar(50) // 'user', 'assistant', 'system'
+  content String @db.Text
+
+  // Optional fields
+  model        String? @db.VarChar(255)
+  tokensUsed   Int?    @map("tokens_used")
+  conversationId String? @map("conversation_id") @db.Uuid
+
+  // Optional metadata
+  metadata Json?
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([conversationId])
+  @@index([createdAt])
+  @@map("chat_messages")
+}
+
+model Payment {
+  id        String   @id @default(uuid()) @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  userId String @map("user_id") @db.Uuid
+  provider PaymentProvider
+  status   PaymentStatus @default(pending)
+
+  // Payment details
+  amountRubles Int    @map("amount_rubles")
+  currency     String @default("RUB") @db.VarChar(3)
+  description  String @db.Text
+
+  // Provider-specific IDs
+  externalId String  @unique @map("external_id") @db.VarChar(255) // Payment ID from provider
+  invoiceId  String? @map("invoice_id") @db.VarChar(255)
+
+  // Subscription details (if applicable)
+  subscriptionTier SubscriptionTier? @map("subscription_tier")
+
+  // Payment confirmation
+  confirmedAt DateTime? @map("confirmed_at") @db.Timestamptz
+  failedAt    DateTime? @map("failed_at") @db.Timestamptz
+  failureReason String? @map("failure_reason") @db.Text
+
+  // Optional metadata (receipt, payment method, etc.)
+  metadata Json?
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([externalId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("payments")
+}
+
+model SubscriptionTierConfig {
+  id        String   @id @default(uuid()) @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  tier                SubscriptionTier @unique
+  monthlyTokens       Int              @map("monthly_tokens")
+  priceRubles         Int?             @map("price_rubles")
+  requestsPerMinute   Int              @map("requests_per_minute")
+  burstPerSecond      Int              @map("burst_per_second")
+  requiresChannel     Boolean          @default(false) @map("requires_channel")
+  description         String           @db.Text
+  isActive            Boolean          @default(true) @map("is_active")
+
+  // Optional metadata
+  metadata Json?
+
+  @@map("subscription_tier_config")
+}

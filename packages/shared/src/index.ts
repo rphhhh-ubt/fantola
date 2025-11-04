@@ -1,6 +1,9 @@
 // Export database access layer
 export * from './db';
 
+// Export queue module
+export * from './queue';
+
 // Export utility functions
 export interface User {
   id: string;

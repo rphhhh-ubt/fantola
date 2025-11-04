@@ -1,5 +1,5 @@
 import { getConfig } from '@monorepo/config';
-import { formatDate } from '@monorepo/shared';
+import { formatDate, setupDatabaseShutdown, DatabaseClient } from '@monorepo/shared';
 import { Monitoring } from '@monorepo/monitoring';
 
 async function main() {
@@ -8,6 +8,26 @@ async function main() {
   const monitoring = new Monitoring({
     service: 'bot',
     environment: config.nodeEnv,
+  });
+
+  // Initialize database client
+  DatabaseClient.initialize({
+    logQueries: config.nodeEnv === 'development',
+    onError: (error, context) => {
+      monitoring.handleError(error, context as Record<string, unknown>);
+    },
+  });
+
+  // Setup graceful shutdown
+  setupDatabaseShutdown({
+    timeout: 10000,
+    logger: (message) => monitoring.logger.info(message),
+    cleanupHandlers: [
+      async () => {
+        monitoring.logger.info('Stopping bot...');
+        // Add bot cleanup logic here
+      },
+    ],
   });
 
   if (config.enableMetrics) {

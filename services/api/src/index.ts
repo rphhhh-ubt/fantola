@@ -1,5 +1,5 @@
 import { getConfig } from '@monorepo/config';
-import { isValidEmail } from '@monorepo/shared';
+import { isValidEmail, setupDatabaseShutdown, DatabaseClient } from '@monorepo/shared';
 import { Monitoring } from '@monorepo/monitoring';
 
 async function main() {
@@ -8,6 +8,26 @@ async function main() {
   const monitoring = new Monitoring({
     service: 'api',
     environment: config.nodeEnv,
+  });
+
+  // Initialize database client
+  DatabaseClient.initialize({
+    logQueries: config.nodeEnv === 'development',
+    onError: (error, context) => {
+      monitoring.handleError(error, context as Record<string, unknown>);
+    },
+  });
+
+  // Setup graceful shutdown
+  setupDatabaseShutdown({
+    timeout: 10000,
+    logger: (message) => monitoring.logger.info(message),
+    cleanupHandlers: [
+      async () => {
+        monitoring.logger.info('Stopping metrics server...');
+        // Add any cleanup logic here
+      },
+    ],
   });
 
   if (config.enableMetrics) {

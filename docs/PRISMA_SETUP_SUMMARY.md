@@ -5,11 +5,13 @@ This document summarizes the Prisma ORM setup completed for the monorepo.
 ## ✅ What Was Implemented
 
 ### 1. Database Package Created
+
 - **Location**: `packages/database`
 - **Purpose**: Centralized database layer with Prisma ORM
 - **Type**: TypeScript package with full type safety
 
 ### 2. Prisma Schema Defined
+
 - **File**: `packages/database/prisma/schema.prisma`
 - **Database**: PostgreSQL
 - **Models Implemented**:
@@ -22,6 +24,7 @@ This document summarizes the Prisma ORM setup completed for the monorepo.
   - ✅ **SubscriptionTierConfig** - Subscription tier metadata and configuration
 
 ### 3. Enums Defined
+
 - ✅ **SubscriptionTier**: Gift, Professional, Business
 - ✅ **OperationType**: image_generation, sora_image, chatgpt_message, refund, purchase, monthly_reset
 - ✅ **PaymentStatus**: pending, succeeded, failed, canceled, refunded
@@ -30,6 +33,7 @@ This document summarizes the Prisma ORM setup completed for the monorepo.
 - ✅ **GenerationStatus**: pending, processing, completed, failed, canceled
 
 ### 4. Relationships & Constraints
+
 - ✅ Foreign key relationships with cascading deletes
 - ✅ Unique constraints (telegram_id, external_id, tier)
 - ✅ Database indexes on frequently queried columns
@@ -37,6 +41,7 @@ This document summarizes the Prisma ORM setup completed for the monorepo.
 - ✅ Timestamp tracking (created_at, updated_at)
 
 ### 5. Initial Migration Generated
+
 - **Migration**: `20251104010519_initial_schema`
 - **Status**: ✅ Applied successfully to development database
 - **Tables Created**: 7 tables (users, token_operations, subscription_history, generations, chat_messages, payments, subscription_tier_config)
@@ -44,6 +49,7 @@ This document summarizes the Prisma ORM setup completed for the monorepo.
 - **Indexes Created**: 21 indexes for optimal query performance
 
 ### 6. Seed Script Implemented
+
 - **File**: `packages/database/prisma/seed.ts`
 - **Features**:
   - ✅ Seeds subscription tier configurations (Gift, Professional, Business)
@@ -54,6 +60,7 @@ This document summarizes the Prisma ORM setup completed for the monorepo.
   - ✅ Upsert logic to prevent duplicates
 
 ### 7. TypeScript API Created
+
 - **Files**:
   - ✅ `src/index.ts` - Main export file
   - ✅ `src/client.ts` - Prisma client singleton
@@ -61,6 +68,7 @@ This document summarizes the Prisma ORM setup completed for the monorepo.
   - ✅ `src/seed.ts` - Programmatic seed function
 
 ### 8. Build & Scripts Integration
+
 - ✅ `prisma:generate` - Generate Prisma Client
 - ✅ `prisma:migrate:dev` - Create and apply migrations
 - ✅ `prisma:migrate:deploy` - Deploy migrations to production
@@ -70,12 +78,14 @@ This document summarizes the Prisma ORM setup completed for the monorepo.
 - ✅ Integrated into root `package.json` with `db:*` commands
 
 ### 9. Documentation Created
+
 - ✅ **README.md** - Comprehensive package documentation (270+ lines)
 - ✅ **PRISMA_MIGRATION_WORKFLOW.md** - Detailed migration workflow guide (470+ lines)
 - ✅ **PRISMA_MIGRATION_FROM_SQL.md** - Migration guide from SQL to Prisma (330+ lines)
 - ✅ **PRISMA_SETUP_SUMMARY.md** - This file
 
 ### 10. Configuration
+
 - ✅ `.env` file for DATABASE_URL
 - ✅ `.env.example` for reference
 - ✅ `tsconfig.json` for TypeScript compilation
@@ -83,11 +93,13 @@ This document summarizes the Prisma ORM setup completed for the monorepo.
 - ✅ `.gitignore` for Prisma artifacts
 
 ### 11. Tests
+
 - ✅ Basic client tests (`src/__tests__/client.test.ts`)
 - ✅ Jest configuration
 - ✅ 2 passing tests
 
 ### 12. Main README Updated
+
 - ✅ Added Database package to architecture diagram
 - ✅ Added Database section to packages list
 - ✅ Added Database Setup instructions
@@ -96,32 +108,32 @@ This document summarizes the Prisma ORM setup completed for the monorepo.
 
 ## 📊 Schema Statistics
 
-| Model | Fields | Relations | Indexes |
-|-------|--------|-----------|---------|
-| User | 12 | 5 | 4 |
-| TokenOperation | 7 | 1 | 3 |
-| SubscriptionHistory | 8 | 1 | 2 |
-| Generation | 14 | 1 | 4 |
-| ChatMessage | 8 | 1 | 3 |
-| Payment | 16 | 1 | 4 |
-| SubscriptionTierConfig | 11 | 0 | 1 |
-| **Total** | **76** | **10** | **21** |
+| Model                  | Fields | Relations | Indexes |
+| ---------------------- | ------ | --------- | ------- |
+| User                   | 12     | 5         | 4       |
+| TokenOperation         | 7      | 1         | 3       |
+| SubscriptionHistory    | 8      | 1         | 2       |
+| Generation             | 14     | 1         | 4       |
+| ChatMessage            | 8      | 1         | 3       |
+| Payment                | 16     | 1         | 4       |
+| SubscriptionTierConfig | 11     | 0         | 1       |
+| **Total**              | **76** | **10**    | **21**  |
 
 ## 🎯 Subscription Tiers Configuration
 
-| Tier | Monthly Tokens | Price | Requests/Min | Burst/Sec | Channel Required |
-|------|---------------|-------|--------------|-----------|------------------|
-| Gift | 100 | Free | 10 | 3 | ✅ Yes |
-| Professional | 2,000 | 1990₽ | 50 | 10 | ❌ No |
-| Business | 10,000 | 3490₽ | 100 | 20 | ❌ No |
+| Tier         | Monthly Tokens | Price | Requests/Min | Burst/Sec | Channel Required |
+| ------------ | -------------- | ----- | ------------ | --------- | ---------------- |
+| Gift         | 100            | Free  | 10           | 3         | ✅ Yes           |
+| Professional | 2,000          | 1990₽ | 50           | 10        | ❌ No            |
+| Business     | 10,000         | 3490₽ | 100          | 20        | ❌ No            |
 
 ## 💰 Token Costs
 
-| Operation | Tokens | Examples |
-|-----------|--------|----------|
-| Image Generation | 10 | DALL-E, Stable Diffusion |
-| Sora Video | 10 | Sora video generation |
-| ChatGPT Message | 5 | ChatGPT conversation |
+| Operation        | Tokens | Examples                 |
+| ---------------- | ------ | ------------------------ |
+| Image Generation | 10     | DALL-E, Stable Diffusion |
+| Sora Video       | 10     | Sora video generation    |
+| ChatGPT Message  | 5      | ChatGPT conversation     |
 
 ## 📦 Package Structure
 
@@ -228,26 +240,31 @@ postgresql://[user]:[password]@[host]:[port]/[database]
 ## ✨ Key Features
 
 ### 1. Type Safety
+
 - Auto-generated TypeScript types
 - Compile-time error checking
 - IDE auto-completion
 
 ### 2. Relations
+
 - Explicit foreign keys
 - Cascading deletes
 - Easy nested queries
 
 ### 3. Migrations
+
 - Version-controlled schema changes
 - Automatic SQL generation
 - Rollback support
 
 ### 4. Seeding
+
 - Consistent test data
 - Subscription tier configuration
 - Sample users
 
 ### 5. Prisma Studio
+
 - Visual database browser
 - Edit data in UI
 - No SQL required
@@ -263,6 +280,7 @@ postgresql://[user]:[password]@[host]:[port]/[database]
 ## 🔐 Best Practices
 
 ### DO ✅
+
 - Always create migrations for schema changes
 - Name migrations descriptively
 - Test migrations locally before deploying
@@ -272,6 +290,7 @@ postgresql://[user]:[password]@[host]:[port]/[database]
 - Review generated SQL
 
 ### DON'T ❌
+
 - Don't edit migration files after they're applied
 - Don't use `db:push` in production
 - Don't skip migrations or modify applied ones
@@ -300,6 +319,7 @@ All tasks from the ticket have been completed:
 To use the database package in services:
 
 1. **Add as dependency** in service `package.json`:
+
    ```json
    {
      "dependencies": {
@@ -309,18 +329,18 @@ To use the database package in services:
    ```
 
 2. **Update service `tsconfig.json`**:
+
    ```json
    {
-     "references": [
-       { "path": "../../packages/database" }
-     ]
+     "references": [{ "path": "../../packages/database" }]
    }
    ```
 
 3. **Import and use**:
+
    ```typescript
    import { db, SubscriptionTier } from '@monorepo/database';
-   
+
    const users = await db.user.findMany({
      where: { tier: SubscriptionTier.Professional },
    });
@@ -364,6 +384,7 @@ All components have been validated:
 ## 🎯 Summary
 
 The Prisma database package is fully implemented and ready for use. It provides:
+
 - Type-safe database access
 - Comprehensive data model
 - Migration management

@@ -53,16 +53,19 @@ monorepo/
 ## 🚀 Quick Start
 
 ### Docker Compose Deployment
+
 ```bash
 make docker-deploy
 ```
 
 ### Fly.io Deployment
+
 ```bash
 make fly-deploy
 ```
 
 ### Railway Deployment
+
 ```bash
 make railway-deploy
 ```
@@ -72,17 +75,20 @@ make railway-deploy
 ### 1. Multi-Platform Support
 
 **Docker Compose:**
+
 - Local and production deployments
 - Full infrastructure stack (PostgreSQL, Redis, all services)
 - Production-ready with resource limits and health checks
 
 **Fly.io:**
+
 - Global distribution
 - Automatic HTTPS
 - Managed PostgreSQL and Redis
 - Individual service configurations
 
 **Railway:**
+
 - Simple deployment process
 - Automatic environments
 - Managed databases
@@ -91,15 +97,18 @@ make railway-deploy
 ### 2. Database Management
 
 **Initialization:**
+
 - `scripts/db/init.sql` - Database schema and initial setup
 - Automatic execution on first run
 
 **Migrations:**
+
 - Migration directory: `scripts/db/migrations/`
 - Migration runner: `make db-migrate`
 - Supports sequential SQL migrations
 
 **Backups:**
+
 - Automated backup script: `make db-backup`
 - Compressed backups with timestamps
 - Optional S3 upload
@@ -108,16 +117,19 @@ make railway-deploy
 ### 3. Worker Scaling
 
 **Docker Compose:**
+
 ```bash
 make scale-workers N=5
 ```
 
 **Fly.io:**
+
 ```bash
 flyctl scale count 5 -a monorepo-worker
 ```
 
 **Configuration:**
+
 - `WORKER_CONCURRENCY`: Jobs per worker
 - `WORKER_REPLICAS`: Number of worker instances
 - `WORKER_MAX_JOBS_PER_WORKER`: Maximum jobs before restart
@@ -125,15 +137,18 @@ flyctl scale count 5 -a monorepo-worker
 ### 4. Webhook Management
 
 **Automated Setup:**
+
 ```bash
 make setup-webhooks
 ```
 
 **Supported Webhooks:**
+
 - Telegram Bot webhooks with secret tokens
 - YooKassa payment webhooks
 
 **Configuration:**
+
 - Domain-based webhook URLs
 - Configurable paths
 - Secret token validation
@@ -141,17 +156,20 @@ make setup-webhooks
 ### 5. Backup and Restore
 
 **Database Backups:**
+
 - Daily automated backups via cron
 - Compressed with gzip
 - S3 upload capability
 - Automatic cleanup of old backups
 
 **Storage Backups:**
+
 - S3-to-S3 sync
 - Incremental backups
 - Local backup option
 
 **Restore Procedures:**
+
 - Database point-in-time recovery
 - Storage restoration
 - Documented rollback procedures
@@ -159,17 +177,20 @@ make setup-webhooks
 ### 6. Monitoring and Health Checks
 
 **Health Check Script:**
+
 ```bash
 ./scripts/monitoring/health-check.sh
 ```
 
 **Checks:**
+
 - API availability
 - PostgreSQL connection
 - Redis connection
 - Service-specific health endpoints
 
 **Continuous Monitoring:**
+
 - Cron job support
 - Log aggregation
 - Alert integration ready
@@ -177,6 +198,7 @@ make setup-webhooks
 ## 🎯 Makefile Commands
 
 ### Development
+
 ```bash
 make install        # Install dependencies
 make build          # Build all services
@@ -185,6 +207,7 @@ make clean          # Clean build artifacts
 ```
 
 ### Docker Operations
+
 ```bash
 make docker-build   # Build Docker images
 make docker-up      # Start services
@@ -194,12 +217,14 @@ make docker-logs    # View logs
 ```
 
 ### Deployment
+
 ```bash
 make fly-deploy     # Deploy to Fly.io
 make railway-deploy # Deploy to Railway
 ```
 
 ### Database Operations
+
 ```bash
 make db-migrate     # Run migrations
 make db-backup      # Create backup
@@ -207,11 +232,13 @@ make db-restore FILE=<file>  # Restore from backup
 ```
 
 ### Storage Operations
+
 ```bash
 make storage-backup # Backup S3/storage
 ```
 
 ### Operations
+
 ```bash
 make setup-webhooks # Configure webhooks
 make scale-workers N=<num>  # Scale worker replicas
@@ -220,6 +247,7 @@ make scale-workers N=<num>  # Scale worker replicas
 ## 🔐 Environment Variables
 
 ### Core Configuration
+
 ```env
 NODE_ENV=production
 PORT=3000
@@ -228,6 +256,7 @@ REDIS_URL=redis://...
 ```
 
 ### Telegram Bot
+
 ```env
 TELEGRAM_BOT_TOKEN=your_token
 TELEGRAM_WEBHOOK_DOMAIN=your-domain.com
@@ -236,6 +265,7 @@ TELEGRAM_WEBHOOK_SECRET=your_secret
 ```
 
 ### YooKassa Payments
+
 ```env
 YOOKASSA_SHOP_ID=your_shop_id
 YOOKASSA_SECRET_KEY=your_secret_key
@@ -244,6 +274,7 @@ YOOKASSA_WEBHOOK_SECRET=your_secret
 ```
 
 ### S3/Storage
+
 ```env
 S3_ENDPOINT=https://s3.amazonaws.com
 S3_REGION=us-east-1
@@ -253,6 +284,7 @@ S3_SECRET_ACCESS_KEY=your_secret
 ```
 
 ### Worker Configuration
+
 ```env
 WORKER_CONCURRENCY=10
 WORKER_REPLICAS=3
@@ -260,6 +292,7 @@ WORKER_MAX_JOBS_PER_WORKER=50
 ```
 
 ### Backup Configuration
+
 ```env
 BACKUP_DIR=./backups
 S3_BACKUP_BUCKET=your-backup-bucket
@@ -269,7 +302,9 @@ CLEANUP_OLD_BACKUPS=true
 ## 📚 Documentation
 
 ### Deployment Guide (`docs/DEPLOYMENT.md`)
+
 Comprehensive guide covering:
+
 - Prerequisites and setup
 - Environment configuration
 - Platform-specific deployment procedures
@@ -280,14 +315,18 @@ Comprehensive guide covering:
 - Monitoring and troubleshooting
 
 ### Quickstart Guide (`docs/QUICKSTART.md`)
+
 Quick deployment instructions for:
+
 - Docker Compose (5 minutes)
 - Fly.io (10 minutes)
 - Railway (5 minutes)
 - Platform comparison
 
 ### Operations Guide (`docs/OPERATIONS.md`)
+
 Day-to-day operations including:
+
 - Health monitoring
 - Scaling operations
 - Backup procedures
@@ -302,29 +341,33 @@ Day-to-day operations including:
 ### Initial Deployment
 
 1. **Configure Environment**
+
    ```bash
    cp .env.example .env
    # Edit .env with your configuration
    ```
 
 2. **Choose Platform and Deploy**
+
    ```bash
    # Docker Compose
    make docker-deploy
-   
+
    # OR Fly.io
    make fly-deploy
-   
+
    # OR Railway
    make railway-deploy
    ```
 
 3. **Run Migrations**
+
    ```bash
    make db-migrate
    ```
 
 4. **Setup Webhooks**
+
    ```bash
    make setup-webhooks
    ```
@@ -337,21 +380,25 @@ Day-to-day operations including:
 ### Updating Deployment
 
 1. **Pull Latest Changes**
+
    ```bash
    git pull origin main
    ```
 
 2. **Backup Database**
+
    ```bash
    make db-backup
    ```
 
 3. **Redeploy**
+
    ```bash
    make docker-deploy  # or fly-deploy / railway-deploy
    ```
 
 4. **Run New Migrations**
+
    ```bash
    make db-migrate
    ```
@@ -379,6 +426,7 @@ Day-to-day operations including:
 ## 📊 Monitoring Setup
 
 ### Health Checks
+
 ```bash
 # Manual
 ./scripts/monitoring/health-check.sh
@@ -388,6 +436,7 @@ Day-to-day operations including:
 ```
 
 ### Log Monitoring
+
 ```bash
 # Real-time logs
 make docker-logs
@@ -398,7 +447,9 @@ docker compose logs -f worker
 ```
 
 ### Metrics
+
 Configure with:
+
 - Prometheus (metrics collection)
 - Grafana (visualization)
 - Sentry (error tracking)
@@ -407,18 +458,21 @@ Configure with:
 ## 🔧 Maintenance
 
 ### Daily Tasks
+
 - Monitor service health
 - Check error logs
 - Review queue lengths
 - Verify backups
 
 ### Weekly Tasks
+
 - Review performance metrics
 - Check database size
 - Verify backup integrity
 - Update dependencies (security patches)
 
 ### Monthly Tasks
+
 - Test disaster recovery
 - Optimize database
 - Review scaling requirements

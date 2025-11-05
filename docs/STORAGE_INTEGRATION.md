@@ -5,6 +5,7 @@ This document describes the storage integration system for handling file uploads
 ## Overview
 
 The system supports two storage backends:
+
 - **Local File System**: Files stored on local disk with Nginx CDN
 - **S3-Compatible Storage**: AWS S3 or compatible object storage (MinIO, Wasabi, etc.)
 
@@ -152,16 +153,19 @@ const result = await processor.processImage({
 ### Cache Headers
 
 **Uploads** (user content, may be deleted):
+
 - Cache-Control: `public, immutable`
 - Expires: 7 days
 
 **Generated & Processed** (permanent content):
+
 - Cache-Control: `public, immutable`
 - Expires: 30 days
 
 ### Compression
 
 Gzip enabled for:
+
 - `image/jpeg`
 - `image/png`
 - `image/webp`
@@ -176,6 +180,7 @@ Gzip enabled for:
 ## File Permissions
 
 All storage directories are created with:
+
 - Owner: `node:node` (1000:1000)
 - Permissions: `755` (rwxr-xr-x)
 - Files created with default umask

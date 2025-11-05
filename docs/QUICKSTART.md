@@ -15,12 +15,14 @@ Get your application deployed in minutes using any of these platforms.
 Perfect for deploying on your own VPS or server.
 
 ### Prerequisites
+
 - Docker & Docker Compose installed
 - Domain name (for webhooks)
 
 ### Steps
 
 1. **Clone and configure**
+
    ```bash
    git clone <your-repo>
    cd monorepo
@@ -30,6 +32,7 @@ Perfect for deploying on your own VPS or server.
 2. **Edit `.env` file** with your credentials
 
 3. **Deploy**
+
    ```bash
    make docker-deploy
    ```
@@ -40,6 +43,7 @@ Perfect for deploying on your own VPS or server.
    ```
 
 That's it! Your services are now running at:
+
 - API: http://localhost:3000
 - PostgreSQL: localhost:5432
 - Redis: localhost:6379
@@ -60,51 +64,58 @@ make db-backup        # Backup database
 Fly.io provides global distribution with excellent performance.
 
 ### Prerequisites
+
 - Fly.io account (free tier available)
 - flyctl CLI installed
 
 ### Steps
 
 1. **Install flyctl**
+
    ```bash
    curl -L https://fly.io/install.sh | sh
    ```
 
 2. **Login**
+
    ```bash
    flyctl auth login
    ```
 
 3. **Create database and Redis**
+
    ```bash
    flyctl postgres create --name monorepo-db --region iad
    flyctl redis create --name monorepo-redis --region iad
    ```
 
 4. **Get connection strings**
+
    ```bash
    flyctl postgres db list -a monorepo-db
    flyctl redis status -a monorepo-redis
    ```
 
 5. **Deploy all services**
+
    ```bash
    make fly-deploy
    ```
 
 6. **Set secrets** (use values from step 4 and your .env)
+
    ```bash
    # API
    flyctl secrets set DATABASE_URL="..." REDIS_URL="..." \
      YOOKASSA_SHOP_ID="..." YOOKASSA_SECRET_KEY="..." \
      JWT_SECRET="..." -a monorepo-api
-   
+
    # Bot
    flyctl secrets set DATABASE_URL="..." REDIS_URL="..." \
      TELEGRAM_BOT_TOKEN="..." \
      TELEGRAM_WEBHOOK_DOMAIN="monorepo-api.fly.dev" \
      -a monorepo-bot
-   
+
    # Worker
    flyctl secrets set DATABASE_URL="..." REDIS_URL="..." \
      S3_ACCESS_KEY_ID="..." S3_SECRET_ACCESS_KEY="..." \
@@ -112,6 +123,7 @@ Fly.io provides global distribution with excellent performance.
    ```
 
 7. **Run migrations**
+
    ```bash
    flyctl ssh console -a monorepo-api -C "npm run migrate"
    ```
@@ -140,22 +152,26 @@ flyctl scale count 3 -a monorepo-worker # Scale workers
 Railway provides the simplest deployment with automatic environments.
 
 ### Prerequisites
+
 - Railway account (free tier available)
 - Railway CLI installed
 
 ### Steps
 
 1. **Install Railway CLI**
+
    ```bash
    npm install -g @railway/cli
    ```
 
 2. **Login**
+
    ```bash
    railway login
    ```
 
 3. **Create project**
+
    ```bash
    railway init
    ```
@@ -167,12 +183,14 @@ Railway provides the simplest deployment with automatic environments.
    - Note the connection strings
 
 5. **Deploy services**
+
    ```bash
    make railway-deploy
    ```
 
 6. **Set environment variables**
    Via Railway Dashboard or CLI:
+
    ```bash
    railway variables set DATABASE_URL="..."
    railway variables set REDIS_URL="..."
@@ -214,6 +232,7 @@ After deployment:
    - Enable log aggregation
 
 3. **Configure backups**
+
    ```bash
    # Setup automated backups (cron job)
    0 2 * * * cd /path/to/project && make db-backup
@@ -233,6 +252,7 @@ After deployment:
 ## Troubleshooting
 
 ### Services won't start
+
 ```bash
 # Check logs
 docker compose logs  # Docker
@@ -241,33 +261,37 @@ railway logs  # Railway
 ```
 
 ### Webhook not working
+
 - Verify domain is correct and publicly accessible
 - Check webhook secret matches
 - Ensure SSL certificate is valid
 
 ### Database connection issues
+
 - Verify DATABASE_URL is correct
 - Check if database is running
 - Test connection manually
 
 ### Need more help?
+
 See [DEPLOYMENT.md](./DEPLOYMENT.md) for comprehensive documentation.
 
 ---
 
 ## Comparison
 
-| Feature | Docker Compose | Fly.io | Railway |
-|---------|---------------|--------|---------|
-| Setup Time | 5 min | 10 min | 5 min |
-| Free Tier | No (own server) | Yes | Yes |
-| Global CDN | No | Yes | Yes |
-| Auto HTTPS | No | Yes | Yes |
-| Scaling | Manual | Easy | Easy |
-| Cost | Server cost | $0-20/mo | $0-20/mo |
-| Best For | Self-hosted, full control | Production, global apps | Quick prototypes |
+| Feature    | Docker Compose            | Fly.io                  | Railway          |
+| ---------- | ------------------------- | ----------------------- | ---------------- |
+| Setup Time | 5 min                     | 10 min                  | 5 min            |
+| Free Tier  | No (own server)           | Yes                     | Yes              |
+| Global CDN | No                        | Yes                     | Yes              |
+| Auto HTTPS | No                        | Yes                     | Yes              |
+| Scaling    | Manual                    | Easy                    | Easy             |
+| Cost       | Server cost               | $0-20/mo                | $0-20/mo         |
+| Best For   | Self-hosted, full control | Production, global apps | Quick prototypes |
 
 Choose based on your needs:
+
 - **Docker Compose**: Full control, self-hosted
 - **Fly.io**: Production-ready, global distribution
 - **Railway**: Fastest setup, simple deployment

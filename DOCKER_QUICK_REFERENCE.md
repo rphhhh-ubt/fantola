@@ -170,16 +170,16 @@ make db-restore          # Restore database
 
 ## 🌐 Service Ports
 
-| Service      | Port(s)      | Description                |
-|--------------|--------------|----------------------------|
-| API          | 3000         | REST API                   |
-| PostgreSQL   | 5432         | Database                   |
-| Redis        | 6379         | Cache & queues             |
-| MinIO        | 9000, 9001   | S3 storage & console       |
-| Prometheus   | 9090         | Metrics (optional)         |
-| Grafana      | 3001         | Dashboards (optional)      |
-| Alertmanager | 9093         | Alerts (optional)          |
-| Prisma Studio| 5555         | DB GUI (when running)      |
+| Service       | Port(s)    | Description           |
+| ------------- | ---------- | --------------------- |
+| API           | 3000       | REST API              |
+| PostgreSQL    | 5432       | Database              |
+| Redis         | 6379       | Cache & queues        |
+| MinIO         | 9000, 9001 | S3 storage & console  |
+| Prometheus    | 9090       | Metrics (optional)    |
+| Grafana       | 3001       | Dashboards (optional) |
+| Alertmanager  | 9093       | Alerts (optional)     |
+| Prisma Studio | 5555       | DB GUI (when running) |
 
 ## 📂 MinIO (S3 Storage)
 
@@ -227,6 +227,7 @@ S3_SECRET_ACCESS_KEY=minioadmin123
 ## 🐛 Troubleshooting
 
 ### Container won't start
+
 ```bash
 docker compose logs service-name
 docker compose ps
@@ -234,23 +235,27 @@ docker compose config
 ```
 
 ### Database connection failed
+
 ```bash
 docker compose ps postgres
 docker compose exec api nc -zv postgres 5432
 ```
 
 ### Out of disk space
+
 ```bash
 docker system df
 docker system prune -a --volumes
 ```
 
 ### Permission issues
+
 ```bash
 docker compose exec api chown -R node:node /var/www/storage
 ```
 
 ### Reset everything
+
 ```bash
 docker compose down -v --rmi all
 docker volume prune -f

@@ -22,16 +22,16 @@ Created a new package at `packages/rate-limit` with the following components:
 ```typescript
 // Subscription Tiers
 enum SubscriptionTier {
-  GIFT = 'Gift',           // 100 tokens/month, free
-  PROFESSIONAL = 'Professional',  // 2000 tokens/month, 1990₽
-  BUSINESS = 'Business',   // 10000 tokens/month, 3490₽
+  GIFT = 'Gift', // 100 tokens/month, free
+  PROFESSIONAL = 'Professional', // 2000 tokens/month, 1990₽
+  BUSINESS = 'Business', // 10000 tokens/month, 3490₽
 }
 
 // Operation Types
 enum OperationType {
-  IMAGE_GENERATION = 'image_generation',    // 10 tokens
-  SORA_IMAGE = 'sora_image',               // 10 tokens
-  CHATGPT_MESSAGE = 'chatgpt_message',     // 5 tokens
+  IMAGE_GENERATION = 'image_generation', // 10 tokens
+  SORA_IMAGE = 'sora_image', // 10 tokens
+  CHATGPT_MESSAGE = 'chatgpt_message', // 5 tokens
 }
 ```
 
@@ -39,42 +39,44 @@ enum OperationType {
 
 **These are TWO separate systems that work together:**
 
-| System | Purpose | Unit | Storage | Reset |
-|--------|---------|------|---------|-------|
-| **Rate Limiting** | Anti-abuse protection | Requests/minute | Redis | Sliding window |
-| **Token Billing** | Payment/credits | Tokens | PostgreSQL + Redis | Monthly renewal |
+| System            | Purpose               | Unit            | Storage            | Reset           |
+| ----------------- | --------------------- | --------------- | ------------------ | --------------- |
+| **Rate Limiting** | Anti-abuse protection | Requests/minute | Redis              | Sliding window  |
+| **Token Billing** | Payment/credits       | Tokens          | PostgreSQL + Redis | Monthly renewal |
 
 **Both checks must pass** for a request to be processed.
 
 ### 3. Rate Limiting Implementation
 
 #### Sliding Window Algorithm
+
 - Tracks requests per minute per user
 - Uses Redis sorted sets for efficient time-based querying
 - Automatic cleanup of expired entries
 
 #### Token Bucket Algorithm
+
 - Prevents burst attacks (requests/second)
 - Smooth rate limiting with refill mechanism
 - Configurable capacity per tier
 
 #### Rate Limits per Tier
 
-| Tier | Requests/Minute | Burst/Second |
-|------|----------------|--------------|
-| Gift | 10 | 3 |
-| Professional | 50 | 10 |
-| Business | 100 | 20 |
+| Tier         | Requests/Minute | Burst/Second |
+| ------------ | --------------- | ------------ |
+| Gift         | 10              | 3            |
+| Professional | 50              | 10           |
+| Business     | 100             | 20           |
 
 ### 4. Token Billing Implementation
 
 #### Token Allocations
 
-| Tier | Tokens/Month | Price |
-|------|-------------|-------|
-| Gift | 100 | Free (channel subscription required) |
-| Professional | 2000 | 1990₽ |
-| Business | 10000 | 3490₽ |
+| Tier         | Tokens/Month | Price                                |
+| ------------ | ------------ | ------------------------------------ |
+| Gift         | 100          | Free (channel subscription required) |
+| Professional | 2000         | 1990₽                                |
+| Business     | 10000        | 3490₽                                |
 
 #### Token Costs
 
@@ -101,11 +103,11 @@ enum OperationType {
 
 #### TTL Values
 
-| Data Type | TTL | Reason |
-|-----------|-----|--------|
-| User Profile | 5 minutes | Changes infrequently |
-| Token Balance | 1 minute | Updates on every operation |
-| Channel Subscription | 10 minutes | Checked once per session |
+| Data Type            | TTL        | Reason                     |
+| -------------------- | ---------- | -------------------------- |
+| User Profile         | 5 minutes  | Changes infrequently       |
+| Token Balance        | 1 minute   | Updates on every operation |
+| Channel Subscription | 10 minutes | Checked once per session   |
 
 #### Graceful Degradation
 
@@ -114,6 +116,7 @@ System falls back to direct database reads if Redis is unavailable.
 ### 6. Database Schema
 
 #### New `users` Table
+
 ```sql
 CREATE TABLE users (
   id UUID PRIMARY KEY,
@@ -130,6 +133,7 @@ CREATE TABLE users (
 ```
 
 #### Audit Tables
+
 - `token_operations` - Log all token operations
 - `subscription_history` - Track subscription purchases
 
@@ -169,6 +173,7 @@ CREATE TABLE users (
 ### 8. Enhanced MockRedisClient
 
 Updated `packages/test-utils` MockRedisClient to support:
+
 - Sorted sets (ZADD, ZREMRANGEBYSCORE, ZCARD)
 - Sets (SADD, SMEMBERS)
 - Multi/exec transactions with chainable methods
@@ -262,10 +267,7 @@ async function handleRequest(userId: string, tier: SubscriptionTier) {
   }
 
   // 3. Deduct tokens
-  const result = await tokenBilling.deductTokens(
-    userId,
-    OperationType.CHATGPT_MESSAGE
-  );
+  const result = await tokenBilling.deductTokens(userId, OperationType.CHATGPT_MESSAGE);
 
   // 4. Process operation
   return { success: true, newBalance: result.newBalance };
@@ -279,16 +281,19 @@ None. This is a new package with no impact on existing functionality.
 ## Migration Guide
 
 1. **Install dependencies:**
+
    ```bash
    pnpm install --no-frozen-lockfile
    ```
 
 2. **Run database migration:**
+
    ```bash
    psql $DATABASE_URL < scripts/db/migrations/001_add_telegram_users.sql
    ```
 
 3. **Update environment variables:**
+
    ```bash
    REDIS_URL=redis://localhost:6379
    REDIS_HOST=localhost
@@ -363,6 +368,7 @@ cd packages/rate-limit && pnpm test
 ## Files Changed
 
 ### New Files
+
 - `packages/rate-limit/` (entire package)
   - `src/types.ts`
   - `src/rate-limiter.ts`
@@ -381,6 +387,7 @@ cd packages/rate-limit && pnpm test
 - `scripts/db/migrations/001_add_telegram_users.sql`
 
 ### Modified Files
+
 - `packages/test-utils/src/mocks/external-services.ts` - Enhanced MockRedisClient
 - `packages/config/src/index.ts` - Added Redis configuration
 - `pnpm-lock.yaml` - Added ioredis dependency
@@ -397,6 +404,7 @@ Time:        2.058 s
 ## Conclusion
 
 This PR implements a production-ready rate limiting and token billing system with:
+
 - ✅ Comprehensive testing (82 tests, 100% passing)
 - ✅ Extensive documentation (1500+ lines)
 - ✅ Proper separation of concerns

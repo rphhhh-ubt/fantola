@@ -70,6 +70,7 @@ docker compose -f docker-compose.yml -f docker-compose.nginx.yml up -d
 ### SSL Certificates
 
 Place your SSL certificates in `deploy/nginx/ssl/`:
+
 - `cert.pem`: SSL certificate
 - `key.pem`: Private key
 
@@ -83,21 +84,22 @@ cp /etc/letsencrypt/live/your-domain.com/privkey.pem deploy/nginx/ssl/key.pem
 
 ## Platform Comparison
 
-| Feature | Fly.io | Railway | Docker+Nginx |
-|---------|--------|---------|--------------|
-| Setup Complexity | Medium | Low | High |
-| Cost | Pay-as-you-go | Free tier + pay | Server cost |
-| Scaling | Automatic | Automatic | Manual |
-| Global Distribution | Yes | Yes | Single region |
-| Custom Domains | Yes | Yes | Yes |
-| Database | Managed Postgres | Managed Postgres | Self-managed |
-| Best For | Production apps | Rapid prototyping | Full control |
+| Feature             | Fly.io           | Railway           | Docker+Nginx  |
+| ------------------- | ---------------- | ----------------- | ------------- |
+| Setup Complexity    | Medium           | Low               | High          |
+| Cost                | Pay-as-you-go    | Free tier + pay   | Server cost   |
+| Scaling             | Automatic        | Automatic         | Manual        |
+| Global Distribution | Yes              | Yes               | Single region |
+| Custom Domains      | Yes              | Yes               | Yes           |
+| Database            | Managed Postgres | Managed Postgres  | Self-managed  |
+| Best For            | Production apps  | Rapid prototyping | Full control  |
 
 ## Environment Variables
 
 All platforms require the same environment variables. See `.env.example` for a complete list.
 
 Key variables:
+
 - `DATABASE_URL`: PostgreSQL connection string
 - `REDIS_URL`: Redis connection string
 - `TELEGRAM_BOT_TOKEN`: Telegram bot token

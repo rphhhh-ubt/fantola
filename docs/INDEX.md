@@ -5,9 +5,10 @@ Welcome to the monorepo documentation! This index will help you find the informa
 ## 📖 Documentation Structure
 
 ### Getting Started
+
 - **[Main README](../README.md)** - Project overview, architecture, and local development setup
 - **[CONTRIBUTING](../CONTRIBUTING.md)** - Contribution guidelines and development workflow
-- **[Testing Guide](TESTING.md)** 🧪 *Testing strategy and utilities*
+- **[Testing Guide](TESTING.md)** 🧪 _Testing strategy and utilities_
   - Testing framework setup (Jest + ts-jest)
   - Mock utilities for external services
   - Unit, integration, and end-to-end testing
@@ -16,12 +17,13 @@ Welcome to the monorepo documentation! This index will help you find the informa
   - Coverage requirements
 
 ### Deployment
-- **[Quickstart Guide](QUICKSTART.md)** ⭐ *Start here for deployment*
+
+- **[Quickstart Guide](QUICKSTART.md)** ⭐ _Start here for deployment_
   - Quick deployment instructions (5-10 minutes)
   - Step-by-step guides for each platform
   - Platform comparison
 
-- **[Deployment Guide](DEPLOYMENT.md)** 📚 *Comprehensive reference*
+- **[Deployment Guide](DEPLOYMENT.md)** 📚 _Comprehensive reference_
   - Detailed deployment procedures
   - Environment configuration
   - Platform-specific instructions
@@ -30,7 +32,7 @@ Welcome to the monorepo documentation! This index will help you find the informa
   - Scaling strategies
   - Troubleshooting
 
-- **[Operations Guide](OPERATIONS.md)** 🔧 *Day-to-day operations*
+- **[Operations Guide](OPERATIONS.md)** 🔧 _Day-to-day operations_
   - Health monitoring
   - Scaling procedures
   - Backup and restore
@@ -39,13 +41,14 @@ Welcome to the monorepo documentation! This index will help you find the informa
   - Log management
   - Incident response
 
-- **[Deployment Summary](../DEPLOYMENT_SUMMARY.md)** 📋 *Quick reference*
+- **[Deployment Summary](../DEPLOYMENT_SUMMARY.md)** 📋 _Quick reference_
   - File structure overview
   - All available commands
   - Environment variables
   - Configuration options
 
 ### Platform-Specific
+
 - **[Deploy Directory README](../deploy/README.md)** - Platform configuration details
   - Fly.io setup
   - Railway setup
@@ -56,31 +59,37 @@ Welcome to the monorepo documentation! This index will help you find the informa
 ### I want to...
 
 #### Deploy the Application
+
 1. First time? → [Quickstart Guide](QUICKSTART.md)
 2. Need details? → [Deployment Guide](DEPLOYMENT.md)
 3. Updating existing? → [Operations Guide](OPERATIONS.md#deployment)
 
 #### Setup Database
+
 - Initialize database → [Database Operations](DEPLOYMENT.md#database-management)
 - Run migrations → `make db-migrate`
 - Backup database → [Backup Operations](OPERATIONS.md#backup-operations)
 
 #### Configure Webhooks
+
 - Setup guide → [Webhook Setup](DEPLOYMENT.md#webhook-setup)
 - Telegram bot → [Operations: Webhook Management](OPERATIONS.md#webhook-management)
 - YooKassa payments → [Deployment: Webhook Setup](DEPLOYMENT.md#webhook-setup)
 
 #### Scale Services
+
 - Scale workers → [Worker Scaling](DEPLOYMENT.md#worker-scaling)
 - Scale API → [Scaling Operations](OPERATIONS.md#scaling-operations)
 - Auto-scaling → [Operations: Auto-Scaling](OPERATIONS.md#auto-scaling-strategies)
 
 #### Monitor Services
+
 - Health checks → [Health Monitoring](OPERATIONS.md#health-monitoring)
 - View logs → [Log Management](OPERATIONS.md#log-management)
 - Performance tuning → [Performance Optimization](OPERATIONS.md#performance-tuning)
 
 #### Handle Issues
+
 - Troubleshooting → [Deployment: Troubleshooting](DEPLOYMENT.md#troubleshooting)
 - Incident response → [Operations: Incident Response](OPERATIONS.md#incident-response)
 - Rollback deployment → [Operations: Rollback](OPERATIONS.md#rollback-deployment)
@@ -88,18 +97,21 @@ Welcome to the monorepo documentation! This index will help you find the informa
 ## 🚀 Deployment Platforms
 
 ### Docker Compose
+
 - **Best for:** Self-hosted, full control
 - **Setup time:** 5 minutes
 - **Cost:** Server costs only
 - **Guide:** [Quickstart: Docker Compose](QUICKSTART.md#docker-compose-self-hosted)
 
 ### Fly.io
+
 - **Best for:** Production apps, global distribution
 - **Setup time:** 10 minutes
 - **Cost:** Free tier available, then pay-as-you-go
 - **Guide:** [Quickstart: Fly.io](QUICKSTART.md#flyio-recommended)
 
 ### Railway
+
 - **Best for:** Quick prototypes, simple deployment
 - **Setup time:** 5 minutes
 - **Cost:** Free tier available, then pay-as-you-go
@@ -108,6 +120,7 @@ Welcome to the monorepo documentation! This index will help you find the informa
 ## 📂 Key Files and Directories
 
 ### Configuration Files
+
 ```
 .env.example              # Environment variables template
 docker-compose.yml        # Docker Compose base configuration
@@ -120,6 +133,7 @@ Makefile                  # Deployment and operations commands
 ```
 
 ### Deployment Configurations
+
 ```
 deploy/
 ├── fly/                  # Fly.io configurations
@@ -135,6 +149,7 @@ deploy/
 ```
 
 ### Scripts
+
 ```
 scripts/
 ├── backup/               # Backup and restore scripts
@@ -157,6 +172,7 @@ scripts/
 ## 🔧 Common Commands
 
 ### Development
+
 ```bash
 make install              # Install dependencies
 make build                # Build all services
@@ -167,6 +183,7 @@ make test                 # Run tests
 ```
 
 ### Deployment
+
 ```bash
 make docker-deploy        # Deploy with Docker Compose
 make fly-deploy           # Deploy to Fly.io
@@ -174,6 +191,7 @@ make railway-deploy       # Deploy to Railway
 ```
 
 ### Database
+
 ```bash
 make db-migrate           # Run migrations
 make db-backup            # Backup database
@@ -181,6 +199,7 @@ make db-restore FILE=...  # Restore from backup
 ```
 
 ### Operations
+
 ```bash
 make setup-webhooks       # Configure webhooks
 make scale-workers N=5    # Scale worker replicas
@@ -188,6 +207,7 @@ make docker-logs          # View logs
 ```
 
 ### Monitoring
+
 ```bash
 ./scripts/monitoring/health-check.sh  # Check service health
 ```
@@ -195,6 +215,7 @@ make docker-logs          # View logs
 ## 🔐 Security Considerations
 
 Before deploying to production, review:
+
 - [Security Checklist](DEPLOYMENT.md#security-checklist)
 - Environment variable security
 - Database access controls
@@ -205,6 +226,7 @@ Before deploying to production, review:
 ## 📊 Monitoring and Maintenance
 
 Regular tasks documented in [Operations Guide](OPERATIONS.md):
+
 - Daily: Health checks, log review
 - Weekly: Performance metrics, backups verification
 - Monthly: Security updates, database optimization
@@ -217,11 +239,13 @@ Regular tasks documented in [Operations Guide](OPERATIONS.md):
    - Check troubleshooting sections
 
 2. **Review Logs**
+
    ```bash
    make docker-logs
    ```
 
 3. **Run Health Checks**
+
    ```bash
    ./scripts/monitoring/health-check.sh
    ```
@@ -234,7 +258,9 @@ Regular tasks documented in [Operations Guide](OPERATIONS.md):
 ## 📝 Document Summaries
 
 ### Quickstart Guide
+
 Get deployed in minutes with step-by-step instructions for:
+
 - Docker Compose setup
 - Fly.io deployment
 - Railway deployment
@@ -244,7 +270,9 @@ Get deployed in minutes with step-by-step instructions for:
 **Target audience:** Developers deploying for the first time
 
 ### Deployment Guide
+
 Comprehensive reference covering:
+
 - Prerequisites and tools
 - Detailed deployment procedures
 - Environment configuration
@@ -258,7 +286,9 @@ Comprehensive reference covering:
 **Target audience:** DevOps engineers, detailed implementation
 
 ### Operations Guide
+
 Day-to-day operations handbook:
+
 - Health monitoring
 - Scaling operations
 - Database maintenance
@@ -273,16 +303,19 @@ Day-to-day operations handbook:
 ## 🗺️ Recommended Reading Path
 
 ### New to the Project?
+
 1. [Main README](../README.md) - Understand the architecture
 2. [Quickstart Guide](QUICKSTART.md) - Deploy quickly
 3. [Operations Guide](OPERATIONS.md) - Learn maintenance
 
 ### DevOps Engineer?
+
 1. [Deployment Guide](DEPLOYMENT.md) - Detailed procedures
 2. [Operations Guide](OPERATIONS.md) - Operational procedures
 3. [Deployment Summary](../DEPLOYMENT_SUMMARY.md) - Quick reference
 
 ### On-Call Engineer?
+
 1. [Operations Guide](OPERATIONS.md) - Incident response
 2. [Deployment Guide: Troubleshooting](DEPLOYMENT.md#troubleshooting)
 3. [Health Check Script](../scripts/monitoring/health-check.sh)
@@ -290,6 +323,7 @@ Day-to-day operations handbook:
 ## 🔄 Keeping Documentation Updated
 
 This documentation should be updated when:
+
 - New deployment platforms are added
 - Configuration changes are made
 - New features require deployment steps

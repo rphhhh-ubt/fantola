@@ -6,18 +6,18 @@ version: '3.8'
 services:
   postgres:
     ports:
-      - "5432:5432"
+      - '5432:5432'
     environment:
       POSTGRES_DB: monorepo_dev
 
   redis:
     ports:
-      - "6379:6379"
+      - '6379:6379'
 
   minio:
     ports:
-      - "9000:9000"
-      - "9001:9001"
+      - '9000:9000'
+      - '9001:9001'
     environment:
       MINIO_ROOT_USER: minioadmin
       MINIO_ROOT_PASSWORD: minioadmin123
@@ -44,7 +44,7 @@ services:
       - /app/packages/shared/node_modules
       - /app/packages/database/node_modules
       - /app/services/api/node_modules
-    command: ["pnpm", "api:dev"]
+    command: ['pnpm', 'api:dev']
 
   bot:
     build:
@@ -65,7 +65,7 @@ services:
       - /app/packages/shared/node_modules
       - /app/packages/database/node_modules
       - /app/services/bot/node_modules
-    command: ["pnpm", "bot:dev"]
+    command: ['pnpm', 'bot:dev']
 
   worker:
     build:
@@ -89,4 +89,4 @@ services:
       - /app/packages/shared/node_modules
       - /app/packages/database/node_modules
       - /app/services/worker/node_modules
-    command: ["pnpm", "worker:dev"]
+    command: ['pnpm', 'worker:dev']

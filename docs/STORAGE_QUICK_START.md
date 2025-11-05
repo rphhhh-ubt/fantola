@@ -151,13 +151,14 @@ echo "STORAGE_TYPE=local" >> .env
 
 ## 📊 Cache Configuration
 
-| Path | Cache Duration | Purpose |
-|------|----------------|---------|
-| `/static/uploads/` | 7 days | User content |
-| `/static/generated/` | 30 days | AI-generated |
-| `/static/processed/` | 30 days | Processed images |
+| Path                 | Cache Duration | Purpose          |
+| -------------------- | -------------- | ---------------- |
+| `/static/uploads/`   | 7 days         | User content     |
+| `/static/generated/` | 30 days        | AI-generated     |
+| `/static/processed/` | 30 days        | Processed images |
 
 All paths include:
+
 - Gzip compression
 - CORS headers
 - Immutable cache-control

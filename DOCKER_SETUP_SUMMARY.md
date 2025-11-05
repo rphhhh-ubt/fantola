@@ -9,10 +9,11 @@ This document summarizes the Docker setup implementation for the monorepo.
 Updated all three service Dockerfiles to include the database package:
 
 - **Dockerfile.api** - Added `packages/database` to dependencies, build, and production stages
-- **Dockerfile.bot** - Added `packages/database` to dependencies, build, and production stages  
+- **Dockerfile.bot** - Added `packages/database` to dependencies, build, and production stages
 - **Dockerfile.worker** - Added `packages/database` to dependencies, build, and production stages
 
 All Dockerfiles now properly copy:
+
 - Database package.json
 - Database node_modules
 - Database dist folder
@@ -28,6 +29,7 @@ Added MinIO to `docker-compose.yml` as a local S3-compatible storage solution:
 - **Persistent Storage** - `minio_data` volume for data persistence
 
 Default credentials:
+
 - Username: `minioadmin`
 - Password: `minioadmin123`
 
@@ -42,6 +44,7 @@ New development-specific compose override file with:
 - Node modules volume exclusions to prevent conflicts
 
 Usage:
+
 ```bash
 docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
 ```
@@ -49,15 +52,18 @@ docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
 ### 4. Updated Environment Files
 
 **`.env.example`:**
+
 - Added MinIO configuration variables
 - Updated S3 bucket examples
 
 **`.env.development`:**
+
 - Added MinIO configuration
 - Updated S3 endpoint to use MinIO
 - Set proper credentials for local development
 
 New variables:
+
 ```bash
 MINIO_PORT=9000
 MINIO_CONSOLE_PORT=9001
@@ -69,6 +75,7 @@ S3_BUCKET=monorepo-dev
 ### 5. Enhanced Documentation
 
 **README.md:**
+
 - Added comprehensive Docker section (300+ lines)
 - Container workflows (build, run, migrate)
 - Development and production modes
@@ -78,6 +85,7 @@ S3_BUCKET=monorepo-dev
 - Troubleshooting
 
 **DOCKER.md:**
+
 - Complete standalone Docker guide
 - Quick start instructions
 - Development workflow
@@ -101,11 +109,13 @@ make docker-clean     # Clean up everything
 ## File Changes Summary
 
 ### New Files
+
 - `docker-compose.dev.yml` - Development compose overrides
 - `DOCKER.md` - Comprehensive Docker documentation
 - `DOCKER_SETUP_SUMMARY.md` - This file
 
 ### Modified Files
+
 - `Dockerfile.api` - Added database package
 - `Dockerfile.bot` - Added database package
 - `Dockerfile.worker` - Added database package
@@ -143,6 +153,7 @@ make docker-clean     # Clean up everything
 ## Volume Mounts
 
 ### Production
+
 - `postgres_data` - PostgreSQL database
 - `redis_data` - Redis persistence
 - `minio_data` - MinIO object storage
@@ -151,24 +162,29 @@ make docker-clean     # Clean up everything
 - `storage_processed` - Processed files
 
 ### Development (Additional)
+
 - Source code mounted for hot-reload
 - Node modules excluded to prevent conflicts
 
 ## Environment Modes
 
 ### Production Mode
+
 ```bash
 docker compose up -d
 ```
+
 - Optimized images
 - Production builds
 - No volume mounting
 - Resource limits
 
 ### Development Mode
+
 ```bash
 docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
 ```
+
 - Hot-reload enabled
 - Source code mounted
 - Debug logging
@@ -233,12 +249,15 @@ docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --scale wo
 ## MinIO Usage
 
 ### Access Console
+
 1. Open http://localhost:9001
 2. Login: minioadmin / minioadmin123
 3. Browse buckets and files
 
 ### Configure Services
+
 In `.env`:
+
 ```bash
 STORAGE_TYPE=s3
 S3_ENDPOINT=http://minio:9000
@@ -248,7 +267,9 @@ S3_SECRET_ACCESS_KEY=minioadmin123
 ```
 
 ### Production S3
+
 For production, use real S3 (Backblaze B2, AWS S3):
+
 ```bash
 STORAGE_TYPE=s3
 S3_ENDPOINT=https://s3.us-west-002.backblazeb2.com
@@ -260,18 +281,21 @@ S3_SECRET_ACCESS_KEY=your_secret
 ## Benefits
 
 ### Multi-Stage Builds
+
 - Smaller production images (~200MB vs 1GB+)
 - Faster deployments
 - Separated dev and prod dependencies
 - Layer caching for speed
 
 ### Development Experience
+
 - Hot-reload without rebuilding
 - Fast iteration cycles
 - Consistent environment
 - Easy testing
 
 ### Production Ready
+
 - Resource limits
 - Health checks
 - Automatic restarts
@@ -279,6 +303,7 @@ S3_SECRET_ACCESS_KEY=your_secret
 - Monitoring integration
 
 ### Infrastructure as Code
+
 - Reproducible environments
 - Version controlled configuration
 - Easy deployment
@@ -311,12 +336,14 @@ docker compose down -v
 ## Migration Notes
 
 ### From Local Development
+
 1. Export data from local PostgreSQL
 2. Start Docker stack
 3. Import data into Docker PostgreSQL
 4. Update connection strings to `postgres:5432`
 
 ### From Other Docker Setups
+
 1. Export volumes/data
 2. Update docker-compose.yml as needed
 3. Import volumes/data
@@ -325,10 +352,12 @@ docker compose down -v
 ## Troubleshooting
 
 Common issues and solutions are documented in:
+
 - `README.md` - Docker section
 - `DOCKER.md` - Complete guide
 
 Key tips:
+
 - Check logs: `docker compose logs service-name`
 - Check health: `docker compose ps`
 - Verify config: `docker compose config`

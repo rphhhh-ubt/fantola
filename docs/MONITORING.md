@@ -56,6 +56,7 @@ pnpm dev
 ```
 
 Each service will expose:
+
 - `/metrics` endpoint on port 9091 (configurable)
 - `/health` endpoint for health checks
 
@@ -85,7 +86,7 @@ services:
     image: prom/prometheus:latest
     container_name: prometheus
     ports:
-      - "9090:9090"
+      - '9090:9090'
     volumes:
       - ./deploy/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
       - ./deploy/prometheus/alerts.yml:/etc/prometheus/alerts.yml
@@ -103,7 +104,7 @@ services:
     image: grafana/grafana:latest
     container_name: grafana
     ports:
-      - "3001:3000"
+      - '3001:3000'
     environment:
       - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=admin
@@ -121,7 +122,7 @@ services:
     image: prom/alertmanager:latest
     container_name: alertmanager
     ports:
-      - "9093:9093"
+      - '9093:9093'
     volumes:
       - ./deploy/prometheus/alertmanager.yml:/etc/alertmanager/alertmanager.yml
       - alertmanager_data:/alertmanager
@@ -200,8 +201,8 @@ groups:
         labels:
           severity: warning
         annotations:
-          summary: "High error rate detected"
-          description: "Error rate is {{ $value }} errors/sec"
+          summary: 'High error rate detected'
+          description: 'Error rate is {{ $value }} errors/sec'
 
       - alert: CriticalErrorRate
         expr: sum(rate(errors_total{severity="critical"}[5m])) > 1
@@ -209,8 +210,8 @@ groups:
         labels:
           severity: critical
         annotations:
-          summary: "Critical errors detected"
-          description: "Critical error rate: {{ $value }}/sec"
+          summary: 'Critical errors detected'
+          description: 'Critical error rate: {{ $value }}/sec'
 
       - alert: HighQueueFailureRate
         expr: sum(rate(queue_failures_total[5m])) > 5
@@ -218,8 +219,8 @@ groups:
         labels:
           severity: warning
         annotations:
-          summary: "High queue failure rate"
-          description: "Queue failure rate: {{ $value }}/sec"
+          summary: 'High queue failure rate'
+          description: 'Queue failure rate: {{ $value }}/sec'
 
       - alert: PaymentFailures
         expr: sum(increase(payment_failures_total[5m])) > 3
@@ -227,8 +228,8 @@ groups:
         labels:
           severity: critical
         annotations:
-          summary: "Payment failures detected"
-          description: "{{ $value }} payment failures in the last 5 minutes"
+          summary: 'Payment failures detected'
+          description: '{{ $value }} payment failures in the last 5 minutes'
 
       - alert: LowGenerationSuccessRate
         expr: (sum(rate(generation_success_total[5m])) / (sum(rate(generation_success_total[5m])) + sum(rate(generation_failure_total[5m])))) < 0.9
@@ -236,8 +237,8 @@ groups:
         labels:
           severity: warning
         annotations:
-          summary: "Low generation success rate"
-          description: "Success rate is {{ $value | humanizePercentage }}"
+          summary: 'Low generation success rate'
+          description: 'Success rate is {{ $value | humanizePercentage }}'
 
       - alert: HighResponseTime
         expr: histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le, route)) > 2
@@ -245,8 +246,8 @@ groups:
         labels:
           severity: warning
         annotations:
-          summary: "High response time on {{ $labels.route }}"
-          description: "P95 response time is {{ $value }}s"
+          summary: 'High response time on {{ $labels.route }}'
+          description: 'P95 response time is {{ $value }}s'
 
       - alert: ServiceDown
         expr: up == 0
@@ -254,8 +255,8 @@ groups:
         labels:
           severity: critical
         annotations:
-          summary: "Service {{ $labels.service }} is down"
-          description: "Service has been down for more than 1 minute"
+          summary: 'Service {{ $labels.service }} is down'
+          description: 'Service has been down for more than 1 minute'
 ```
 
 ### AlertManager Configuration
@@ -392,12 +393,14 @@ SENTRY_DSN=<your-dsn>
 ### Firewall Rules
 
 Ensure port 9091 is accessible:
+
 - From Prometheus scraper
 - Protected from public access (internal network only)
 
 ## Usage Examples
 
 See the service implementations for examples:
+
 - `services/api/src/index.ts` - API service with metrics
 - `services/bot/src/index.ts` - Bot service with user tracking
 - `services/worker/src/index.ts` - Worker service with job metrics
@@ -409,6 +412,7 @@ For detailed API documentation, see `packages/monitoring/README.md` and `package
 ### Metrics not appearing in Prometheus
 
 1. Check service is exposing metrics:
+
    ```bash
    curl http://localhost:9091/metrics
    ```
@@ -424,7 +428,7 @@ Adjust Prometheus retention:
 
 ```yaml
 command:
-  - '--storage.tsdb.retention.time=15d'  # Reduce from 30d
+  - '--storage.tsdb.retention.time=15d' # Reduce from 30d
 ```
 
 ### Grafana dashboard not loading

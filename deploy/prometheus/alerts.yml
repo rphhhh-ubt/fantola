@@ -8,8 +8,8 @@ groups:
         labels:
           severity: warning
         annotations:
-          summary: "High error rate detected"
-          description: "Error rate is {{ $value }} errors/sec"
+          summary: 'High error rate detected'
+          description: 'Error rate is {{ $value }} errors/sec'
 
       - alert: CriticalErrorRate
         expr: sum(rate(errors_total{severity="critical"}[5m])) > 1
@@ -17,8 +17,8 @@ groups:
         labels:
           severity: critical
         annotations:
-          summary: "Critical errors detected"
-          description: "Critical error rate: {{ $value }}/sec"
+          summary: 'Critical errors detected'
+          description: 'Critical error rate: {{ $value }}/sec'
 
       - alert: HighQueueFailureRate
         expr: sum(rate(queue_failures_total[5m])) > 5
@@ -26,8 +26,8 @@ groups:
         labels:
           severity: warning
         annotations:
-          summary: "High queue failure rate"
-          description: "Queue failure rate: {{ $value }}/sec"
+          summary: 'High queue failure rate'
+          description: 'Queue failure rate: {{ $value }}/sec'
 
       - alert: PaymentFailures
         expr: sum(increase(payment_failures_total[5m])) > 3
@@ -35,8 +35,8 @@ groups:
         labels:
           severity: critical
         annotations:
-          summary: "Payment failures detected"
-          description: "{{ $value }} payment failures in the last 5 minutes"
+          summary: 'Payment failures detected'
+          description: '{{ $value }} payment failures in the last 5 minutes'
 
       - alert: LowGenerationSuccessRate
         expr: (sum(rate(generation_success_total[5m])) / (sum(rate(generation_success_total[5m])) + sum(rate(generation_failure_total[5m])))) < 0.9
@@ -44,8 +44,8 @@ groups:
         labels:
           severity: warning
         annotations:
-          summary: "Low generation success rate"
-          description: "Success rate is {{ $value | humanizePercentage }}"
+          summary: 'Low generation success rate'
+          description: 'Success rate is {{ $value | humanizePercentage }}'
 
       - alert: HighResponseTime
         expr: histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le, route)) > 2
@@ -53,8 +53,8 @@ groups:
         labels:
           severity: warning
         annotations:
-          summary: "High response time on {{ $labels.route }}"
-          description: "P95 response time is {{ $value }}s"
+          summary: 'High response time on {{ $labels.route }}'
+          description: 'P95 response time is {{ $value }}s'
 
       - alert: ServiceDown
         expr: up == 0
@@ -62,8 +62,8 @@ groups:
         labels:
           severity: critical
         annotations:
-          summary: "Service {{ $labels.service }} is down"
-          description: "Service has been down for more than 1 minute"
+          summary: 'Service {{ $labels.service }} is down'
+          description: 'Service has been down for more than 1 minute'
 
       - alert: HighMemoryUsage
         expr: (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes > 0.9
@@ -71,8 +71,8 @@ groups:
         labels:
           severity: warning
         annotations:
-          summary: "High memory usage"
-          description: "Memory usage is above 90%"
+          summary: 'High memory usage'
+          description: 'Memory usage is above 90%'
 
       - alert: HighCPUUsage
         expr: 100 - (avg by (instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
@@ -80,5 +80,5 @@ groups:
         labels:
           severity: warning
         annotations:
-          summary: "High CPU usage"
-          description: "CPU usage is above 80%"
+          summary: 'High CPU usage'
+          description: 'CPU usage is above 80%'

@@ -29,6 +29,7 @@ This guide covers deployment procedures for the monorepo application across diff
 ### Platform-Specific Tools
 
 - **Fly.io**: Install flyctl CLI
+
   ```bash
   curl -L https://fly.io/install.sh | sh
   ```
@@ -51,6 +52,7 @@ cp .env.example .env
 ### 2. Required Environment Variables
 
 #### Database Configuration
+
 ```env
 DATABASE_URL=postgresql://user:password@host:5432/database
 POSTGRES_HOST=localhost
@@ -61,12 +63,14 @@ POSTGRES_PASSWORD=your_secure_password
 ```
 
 #### Redis Configuration
+
 ```env
 REDIS_URL=redis://localhost:6379
 REDIS_PASSWORD=your_redis_password
 ```
 
 #### Telegram Bot
+
 ```env
 TELEGRAM_BOT_TOKEN=your_bot_token
 TELEGRAM_WEBHOOK_DOMAIN=your-domain.com
@@ -75,6 +79,7 @@ TELEGRAM_WEBHOOK_SECRET=your_webhook_secret
 ```
 
 #### YooKassa Payment Gateway
+
 ```env
 YOOKASSA_SHOP_ID=your_shop_id
 YOOKASSA_SECRET_KEY=your_secret_key
@@ -83,6 +88,7 @@ YOOKASSA_WEBHOOK_SECRET=your_webhook_secret
 ```
 
 #### S3/Object Storage
+
 ```env
 S3_ENDPOINT=https://s3.amazonaws.com
 S3_REGION=us-east-1
@@ -92,6 +98,7 @@ S3_SECRET_ACCESS_KEY=your_secret_key
 ```
 
 #### Worker Configuration
+
 ```env
 WORKER_CONCURRENCY=10
 WORKER_REPLICAS=3
@@ -121,11 +128,13 @@ docker compose -f docker-compose.yml build
 #### 2. Start Services
 
 **Development:**
+
 ```bash
 docker compose up -d
 ```
 
 **Production:**
+
 ```bash
 docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 ```
@@ -162,11 +171,13 @@ make setup-webhooks
 ### Scaling Services
 
 #### Scale API Service
+
 ```bash
 docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --scale api=3
 ```
 
 #### Scale Workers
+
 ```bash
 make scale-workers N=5
 # or
@@ -202,11 +213,13 @@ flyctl auth login
 #### 2. Create Required Services
 
 **PostgreSQL Database:**
+
 ```bash
 flyctl postgres create --name monorepo-db --region iad
 ```
 
 **Redis:**
+
 ```bash
 flyctl redis create --name monorepo-redis --region iad
 ```
@@ -330,6 +343,7 @@ railway link
 #### 3. Add Services
 
 Using Railway Dashboard:
+
 1. Go to your project
 2. Click "New Service"
 3. Add PostgreSQL database
@@ -445,6 +459,7 @@ curl "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/getWebhookInfo"
 ### YooKassa Webhook
 
 Configure in YooKassa Dashboard:
+
 1. Go to https://yookassa.ru/my/merchant/integration/http-notifications
 2. Set webhook URL: `https://your-domain.com/webhook/yookassa`
 3. Subscribe to events:
@@ -474,6 +489,7 @@ flyctl scale count 5 -a monorepo-worker
 ### Railway
 
 Modify `deploy/railway/railway.worker.json`:
+
 ```json
 {
   "deploy": {
@@ -483,6 +499,7 @@ Modify `deploy/railway/railway.worker.json`:
 ```
 
 Then redeploy:
+
 ```bash
 railway up --service worker
 ```
@@ -608,6 +625,7 @@ railway logs --tail=100
 ### Metrics
 
 Configure monitoring tools:
+
 - **Prometheus**: Metrics collection
 - **Grafana**: Metrics visualization
 - **Sentry**: Error tracking
@@ -620,11 +638,13 @@ Configure monitoring tools:
 #### Services Won't Start
 
 1. Check logs:
+
    ```bash
    docker compose logs
    ```
 
 2. Verify environment variables:
+
    ```bash
    docker compose config
    ```
@@ -638,6 +658,7 @@ Configure monitoring tools:
 
 1. Verify DATABASE_URL is correct
 2. Check if PostgreSQL is running:
+
    ```bash
    docker compose ps postgres
    ```
@@ -658,11 +679,13 @@ Configure monitoring tools:
 
 1. Check Redis connection
 2. Verify worker is running:
+
    ```bash
    docker compose ps worker
    ```
 
 3. Check worker logs:
+
    ```bash
    docker compose logs worker
    ```
@@ -716,18 +739,21 @@ Before going to production:
 ## Performance Optimization
 
 ### API Service
+
 - Scale horizontally based on traffic
 - Enable caching (Redis)
 - Optimize database queries
 - Use connection pooling
 
 ### Worker Service
+
 - Scale based on queue length
 - Optimize job processing
 - Implement job prioritization
 - Monitor memory usage
 
 ### Database
+
 - Regular VACUUM operations
 - Index optimization
 - Connection pooling
@@ -738,16 +764,19 @@ Before going to production:
 ### Regular Tasks
 
 **Daily:**
+
 - Monitor service health
 - Check error logs
 - Review queue lengths
 
 **Weekly:**
+
 - Review performance metrics
 - Check disk space
 - Verify backups
 
 **Monthly:**
+
 - Update dependencies
 - Review security patches
 - Test disaster recovery
@@ -801,6 +830,7 @@ Use Railway Dashboard to rollback to previous deployment.
 ---
 
 For more information, refer to:
+
 - [README.md](../README.md) - Project overview
 - [CONTRIBUTING.md](../CONTRIBUTING.md) - Development guide
 - Platform documentation for detailed configuration options

@@ -20,18 +20,23 @@ monorepo/
 ## 📦 Services
 
 ### API (`services/api`)
+
 The main REST API service responsible for handling HTTP requests and serving data to clients.
 
 ### Bot (`services/bot`)
+
 A bot service for automated tasks, integrations, or chat functionality.
 
 ### Worker (`services/worker`)
+
 A background worker service for processing asynchronous jobs, scheduled tasks, or queue-based operations.
 
 ## 📚 Packages
 
 ### Config (`packages/config`)
+
 Centralized configuration management with dotenv-flow and zod validation:
+
 - **dotenv-flow**: Automatic loading from multiple .env files
 - **zod**: Runtime validation of required environment variables
 - **Type Safety**: Full TypeScript support with inferred types
@@ -41,7 +46,9 @@ Centralized configuration management with dotenv-flow and zod validation:
 See [Config Package](packages/config/README.md) for detailed documentation.
 
 ### Database (`packages/database`)
+
 Prisma ORM layer for PostgreSQL with type-safe database access:
+
 - **Prisma Client**: Type-safe database queries with auto-generated types
 - **Migrations**: Version-controlled schema changes with migration files
 - **Seeding**: Automated seed scripts for subscription tiers and test data
@@ -51,10 +58,13 @@ Prisma ORM layer for PostgreSQL with type-safe database access:
 See [Database Package](packages/database/README.md) and [Migration Workflow](docs/PRISMA_MIGRATION_WORKFLOW.md) for details.
 
 ### Shared (`packages/shared`)
+
 Common types, interfaces, utilities, and business logic shared between services.
 
 ### Monitoring (`packages/monitoring`)
+
 Comprehensive monitoring, logging, and analytics package featuring:
+
 - **Pino**: Structured JSON logging with pretty printing for development
 - **Prometheus**: Metrics collection and KPI tracking
 - **Sentry**: Error tracking and performance monitoring
@@ -63,7 +73,9 @@ Comprehensive monitoring, logging, and analytics package featuring:
 See [Monitoring Guide](docs/MONITORING.md) and [KPI Tracking Guide](docs/KPI_TRACKING.md) for details.
 
 ### Rate Limit (`packages/rate-limit`)
+
 Redis-based rate limiting and token billing system:
+
 - **Rate Limiting**: Sliding window + token bucket for anti-abuse
 - **Token Billing**: Token deduction and balance management
 - **User Caching**: Efficient caching with TTL and invalidation
@@ -72,19 +84,25 @@ Redis-based rate limiting and token billing system:
 See [Rate Limiting Guide](docs/RATE_LIMITING_AND_TOKEN_BILLING.md) for details.
 
 ### Test Utils (`packages/test-utils`)
+
 Testing utilities and mocks for all services:
+
 - **Mocks**: Telegram Bot, OpenAI, Anthropic, Redis, PostgreSQL, S3
 - **Helpers**: waitFor, mockConsole, mockDateNow, createMockEnv
 - **Coverage**: Comprehensive test coverage with Jest
 
 ## 🛠️ Tech Stack
 
-- **Language:** TypeScript
+- **Language:** TypeScript (strict mode)
 - **Package Manager:** pnpm (with workspaces)
 - **Runtime:** Node.js (>=18.0.0)
-- **Linting:** ESLint with TypeScript support
-- **Formatting:** Prettier
+- **Developer Tooling:**
+  - **Linting:** ESLint with TypeScript support
+  - **Formatting:** Prettier
+  - **Git Hooks:** Husky with lint-staged
+  - **Commit Linting:** commitlint (Conventional Commits)
 - **Build Tool:** TypeScript Compiler (tsc)
+- **Testing:** Jest with ts-jest
 - **Monitoring:** Pino, Prometheus, Sentry
 - **Metrics:** Prometheus with Grafana dashboards
 - **Error Tracking:** Sentry
@@ -97,6 +115,7 @@ Testing utilities and mocks for all services:
 - pnpm >= 8.0.0
 
 Install pnpm if you don't have it:
+
 ```bash
 npm install -g pnpm
 ```
@@ -120,6 +139,7 @@ cp .env.example .env
 Edit `.env` with your configuration values. See [Environment Variables](#-environment-variables) section for details.
 
 The config package uses `dotenv-flow` which supports multiple environment files:
+
 - `.env` - Base configuration (committed)
 - `.env.local` - Local overrides (gitignored)
 - `.env.development` - Development-specific config
@@ -131,16 +151,19 @@ For detailed configuration documentation, see [Config Package](packages/config/R
 ### Database Setup
 
 1. **Start PostgreSQL:**
+
    ```bash
    docker compose up -d postgres
    ```
 
 2. **Generate Prisma Client:**
+
    ```bash
    pnpm db:generate
    ```
 
 3. **Apply migrations:**
+
    ```bash
    pnpm db:migrate:deploy
    ```
@@ -151,6 +174,7 @@ For detailed configuration documentation, see [Config Package](packages/config/R
    ```
 
 For detailed database documentation, see:
+
 - [Database Package](packages/database/README.md)
 - [Migration Workflow](docs/PRISMA_MIGRATION_WORKFLOW.md)
 
@@ -202,6 +226,7 @@ docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build
 #### Initial Setup
 
 1. **Clone and configure environment:**
+
    ```bash
    git clone <repository>
    cd monorepo
@@ -210,22 +235,24 @@ docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build
    ```
 
 2. **Start infrastructure services:**
+
    ```bash
    # Start PostgreSQL, Redis, and MinIO
    docker compose up -d postgres redis minio
-   
+
    # Wait for services to be healthy
    docker compose ps
    ```
 
 3. **Run database migrations:**
+
    ```bash
    # Generate Prisma Client
    docker compose exec api pnpm db:generate
-   
+
    # Apply migrations
    docker compose exec api pnpm db:migrate:deploy
-   
+
    # Seed database with initial data
    docker compose exec api pnpm db:seed
    ```
@@ -355,6 +382,7 @@ Each service uses optimized multi-stage builds:
 4. **Production** - Minimal runtime image with only production dependencies
 
 Benefits:
+
 - Smaller final images
 - Faster builds with layer caching
 - Separate dev and prod dependencies
@@ -418,6 +446,7 @@ All services include health checks:
 ### Troubleshooting
 
 **Container won't start:**
+
 ```bash
 # Check logs
 docker compose logs service-name
@@ -430,6 +459,7 @@ docker compose config
 ```
 
 **Database connection issues:**
+
 ```bash
 # Verify PostgreSQL is healthy
 docker compose ps postgres
@@ -440,12 +470,14 @@ nc -zv postgres 5432
 ```
 
 **Permission issues:**
+
 ```bash
 # Fix storage permissions
 docker compose exec api chown -R node:node /var/www/storage
 ```
 
 **Out of disk space:**
+
 ```bash
 # Clean up Docker resources
 docker system prune -a --volumes
@@ -481,6 +513,7 @@ make railway-deploy
 ```
 
 For detailed deployment instructions, see:
+
 - [Quickstart Guide](docs/QUICKSTART.md) - Get deployed in 5 minutes
 - [Deployment Guide](docs/DEPLOYMENT.md) - Comprehensive deployment documentation
 
@@ -506,6 +539,7 @@ This project uses GitHub Actions for continuous integration and deployment.
 ### Docker Images
 
 Docker images are automatically built and pushed to GitHub Container Registry (GHCR) with the following tags:
+
 - `latest` - Latest build from main branch
 - `main-<sha>` - Specific commit from main branch
 - `v1.2.3` - Semantic version tags
@@ -554,6 +588,7 @@ The CI/CD pipelines use multiple caching strategies for optimal performance:
 1. **Enable GitHub Actions**: Actions are enabled by default in most repositories
 
 2. **Configure Secrets**:
+
    ```bash
    # Go to your repository on GitHub
    # Navigate to Settings → Secrets and variables → Actions
@@ -567,11 +602,13 @@ The CI/CD pipelines use multiple caching strategies for optimal performance:
 ### Development
 
 Run all services in development mode:
+
 ```bash
 pnpm dev
 ```
 
 Run a specific service:
+
 ```bash
 pnpm api:dev      # Run API service
 pnpm bot:dev      # Run bot service
@@ -581,6 +618,7 @@ pnpm worker:dev   # Run worker service
 ### Building
 
 Build all packages and services:
+
 ```bash
 pnpm build
 ```
@@ -588,6 +626,7 @@ pnpm build
 ### Linting
 
 Lint all packages and services:
+
 ```bash
 pnpm lint
 ```
@@ -595,6 +634,7 @@ pnpm lint
 ### Type Checking
 
 Run TypeScript type checking across the monorepo:
+
 ```bash
 pnpm typecheck
 ```
@@ -602,6 +642,7 @@ pnpm typecheck
 ### Testing
 
 Run tests across all packages and services:
+
 ```bash
 pnpm test              # Run all tests
 pnpm test:watch        # Run tests in watch mode
@@ -610,6 +651,7 @@ pnpm test:ci           # Run tests optimized for CI
 ```
 
 Or use Make commands:
+
 ```bash
 make test              # Run all tests
 make test-watch        # Run tests in watch mode
@@ -622,6 +664,7 @@ For detailed testing documentation, see [Testing Guide](docs/TESTING.md).
 ### Database Commands
 
 Manage database schema and migrations:
+
 ```bash
 pnpm db:generate          # Generate Prisma Client
 pnpm db:migrate:dev       # Create and apply new migration
@@ -636,6 +679,7 @@ For detailed database documentation, see [Migration Workflow](docs/PRISMA_MIGRAT
 ### Cleaning
 
 Clean build artifacts:
+
 ```bash
 pnpm clean
 ```
@@ -647,6 +691,7 @@ This monorepo includes comprehensive monitoring and analytics capabilities:
 ### Quick Start
 
 1. **Enable metrics** in your `.env`:
+
    ```bash
    ENABLE_METRICS=true
    METRICS_PORT=9091
@@ -661,6 +706,7 @@ This monorepo includes comprehensive monitoring and analytics capabilities:
    ```bash
    docker-compose -f docker-compose.monitoring.yml up -d
    ```
+
    - Prometheus: http://localhost:9090
    - Grafana: http://localhost:3001 (admin/admin)
    - AlertManager: http://localhost:9093
@@ -668,6 +714,7 @@ This monorepo includes comprehensive monitoring and analytics capabilities:
 ### Key Performance Indicators (KPIs)
 
 The system tracks:
+
 - **Active Users**: Real-time user activity
 - **Generation Success/Failure**: AI content generation metrics
 - **Token Spend**: AI API cost tracking
@@ -710,6 +757,135 @@ try {
 }
 ```
 
+## 🛠️ Developer Tooling
+
+This project includes comprehensive developer tooling to maintain code quality and consistency.
+
+### TypeScript Configuration
+
+The project uses a centralized TypeScript configuration:
+
+- **`tsconfig.base.json`** - Base configuration with strict type checking
+- **`tsconfig.json`** - Root configuration with project references
+- **Package/Service configs** - Each workspace extends `tsconfig.base.json`
+
+All TypeScript configs use project references for faster builds and better IDE performance.
+
+### Linting
+
+ESLint with TypeScript support is configured for the entire monorepo:
+
+```bash
+# Lint all workspaces
+pnpm lint
+
+# Lint root-level files
+pnpm lint:root
+
+# Auto-fix linting issues
+pnpm lint:root --fix
+```
+
+Configuration is in `.eslintrc.json` with TypeScript-specific rules.
+
+### Code Formatting
+
+Prettier is configured for consistent code style:
+
+```bash
+# Format all files
+pnpm format
+
+# Check formatting without making changes
+pnpm format:check
+```
+
+Code style:
+
+- Single quotes
+- Semicolons required
+- 2 space indentation
+- 100 character line width
+- Trailing commas (ES5)
+- Arrow functions use parentheses
+- LF line endings
+
+Configuration is in `.prettierrc.json`.
+
+### Git Hooks
+
+Husky is configured to enforce code quality before commits:
+
+**Pre-commit hook** (`.husky/pre-commit`):
+
+- Runs `lint-staged` to lint and format only staged files
+- Ensures no broken code is committed
+
+**Commit message hook** (`.husky/commit-msg`):
+
+- Validates commit messages using commitlint
+- Enforces Conventional Commits format
+
+### Commit Message Convention
+
+This project uses [Conventional Commits](https://www.conventionalcommits.org/) enforced by commitlint:
+
+**Format:** `<type>(<scope>): <subject>`
+
+**Types:**
+
+- `feat`: New feature
+- `fix`: Bug fix
+- `docs`: Documentation changes
+- `style`: Code style changes (formatting, missing semicolons, etc.)
+- `refactor`: Code refactoring
+- `perf`: Performance improvements
+- `test`: Adding or updating tests
+- `build`: Build system changes
+- `ci`: CI/CD changes
+- `chore`: Other changes (maintenance, dependencies, etc.)
+- `revert`: Revert a previous commit
+
+**Examples:**
+
+```bash
+git commit -m "feat(api): add user authentication endpoint"
+git commit -m "fix(bot): resolve memory leak in message handler"
+git commit -m "docs: update README with setup instructions"
+git commit -m "chore(deps): upgrade typescript to 5.3.2"
+```
+
+### Type Checking
+
+Type check all workspaces:
+
+```bash
+pnpm typecheck
+```
+
+### Running All Checks
+
+Before pushing code, ensure all checks pass:
+
+```bash
+# Type checking
+pnpm typecheck
+
+# Linting
+pnpm lint
+
+# Formatting check
+pnpm format:check
+
+# Tests
+pnpm test
+
+# Build
+pnpm build
+```
+
+Note: Pre-commit hooks will automatically run linting and formatting on staged files, and commitlint will validate your commit messages.
+
 ## 📝 Contribution Workflow
 
 ### 1. Branch Naming Convention
@@ -722,6 +898,7 @@ try {
 ### 2. Making Changes
 
 1. Create a new branch from `main`:
+
    ```bash
    git checkout -b feature/my-new-feature
    ```
@@ -747,6 +924,7 @@ try {
 ### 4. Adding Dependencies
 
 Add a dependency to a specific workspace:
+
 ```bash
 # For a service
 pnpm --filter api add <package-name>
@@ -771,12 +949,14 @@ When creating a new workspace:
 ### 6. Submitting Changes
 
 1. Commit your changes:
+
    ```bash
    git add .
    git commit -m "feat: add new feature"
    ```
 
 2. Push your branch:
+
    ```bash
    git push origin feature/my-new-feature
    ```
@@ -819,84 +999,87 @@ The monorepo uses the `@monorepo/config` package for centralized configuration m
 ### Required Variables by Service
 
 #### API Service
+
 - `JWT_SECRET` - JWT secret key for authentication (required)
 - `POSTGRES_*` or `DATABASE_URL` - Database connection
 
 #### Bot Service
+
 - `TELEGRAM_BOT_TOKEN` - Telegram bot token (required)
 - `POSTGRES_*` or `DATABASE_URL` - Database connection
 - `YOOKASSA_*` - YooKassa payment configuration (optional)
 
 #### Worker Service
+
 - `STORAGE_TYPE` - Storage backend: `local` or `s3`
 - `S3_*` - S3 configuration if using S3 storage
 
 ### Common Variables (All Services)
 
-| Variable | Type | Default | Description |
-|----------|------|---------|-------------|
-| `NODE_ENV` | string | `development` | Node environment |
-| `PORT` | number | `3000` | Service port |
-| `LOG_LEVEL` | string | `info` | Logging level |
-| `ENABLE_METRICS` | boolean | `false` | Enable Prometheus metrics |
-| `METRICS_PORT` | number | `9091` | Metrics server port |
-| `REDIS_HOST` | string | `localhost` | Redis host |
-| `REDIS_PORT` | number | `6379` | Redis port |
-| `REDIS_PASSWORD` | string | - | Redis password |
-| `REDIS_URL` | string | - | Redis URL (overrides individual components) |
+| Variable         | Type    | Default       | Description                                 |
+| ---------------- | ------- | ------------- | ------------------------------------------- |
+| `NODE_ENV`       | string  | `development` | Node environment                            |
+| `PORT`           | number  | `3000`        | Service port                                |
+| `LOG_LEVEL`      | string  | `info`        | Logging level                               |
+| `ENABLE_METRICS` | boolean | `false`       | Enable Prometheus metrics                   |
+| `METRICS_PORT`   | number  | `9091`        | Metrics server port                         |
+| `REDIS_HOST`     | string  | `localhost`   | Redis host                                  |
+| `REDIS_PORT`     | number  | `6379`        | Redis port                                  |
+| `REDIS_PASSWORD` | string  | -             | Redis password                              |
+| `REDIS_URL`      | string  | -             | Redis URL (overrides individual components) |
 
 ### Database Variables
 
-| Variable | Type | Default | Description |
-|----------|------|---------|-------------|
-| `POSTGRES_HOST` | string | `localhost` | PostgreSQL host |
-| `POSTGRES_PORT` | number | `5432` | PostgreSQL port |
-| `POSTGRES_DB` | string | `monorepo` | Database name |
-| `POSTGRES_USER` | string | `postgres` | Database user |
-| `POSTGRES_PASSWORD` | string | `postgres` | Database password |
-| `DATABASE_URL` | string | - | Full database URL (overrides individual components) |
+| Variable            | Type   | Default     | Description                                         |
+| ------------------- | ------ | ----------- | --------------------------------------------------- |
+| `POSTGRES_HOST`     | string | `localhost` | PostgreSQL host                                     |
+| `POSTGRES_PORT`     | number | `5432`      | PostgreSQL port                                     |
+| `POSTGRES_DB`       | string | `monorepo`  | Database name                                       |
+| `POSTGRES_USER`     | string | `postgres`  | Database user                                       |
+| `POSTGRES_PASSWORD` | string | `postgres`  | Database password                                   |
+| `DATABASE_URL`      | string | -           | Full database URL (overrides individual components) |
 
 ### Storage Variables (Worker Service)
 
-| Variable | Type | Default | Description |
-|----------|------|---------|-------------|
-| `STORAGE_TYPE` | string | `local` | Storage backend (`local` or `s3`) |
-| `STORAGE_BASE_URL` | string | `http://localhost/static` | Base URL for static files |
-| `STORAGE_LOCAL_PATH` | string | `/var/www/storage` | Local storage path |
-| `S3_ENDPOINT` | string | - | S3 endpoint (for MinIO, Wasabi, etc.) |
-| `S3_REGION` | string | `us-east-1` | AWS region |
-| `S3_BUCKET` | string | - | S3 bucket name |
-| `S3_ACCESS_KEY_ID` | string | - | AWS access key |
-| `S3_SECRET_ACCESS_KEY` | string | - | AWS secret key |
+| Variable               | Type   | Default                   | Description                           |
+| ---------------------- | ------ | ------------------------- | ------------------------------------- |
+| `STORAGE_TYPE`         | string | `local`                   | Storage backend (`local` or `s3`)     |
+| `STORAGE_BASE_URL`     | string | `http://localhost/static` | Base URL for static files             |
+| `STORAGE_LOCAL_PATH`   | string | `/var/www/storage`        | Local storage path                    |
+| `S3_ENDPOINT`          | string | -                         | S3 endpoint (for MinIO, Wasabi, etc.) |
+| `S3_REGION`            | string | `us-east-1`               | AWS region                            |
+| `S3_BUCKET`            | string | -                         | S3 bucket name                        |
+| `S3_ACCESS_KEY_ID`     | string | -                         | AWS access key                        |
+| `S3_SECRET_ACCESS_KEY` | string | -                         | AWS secret key                        |
 
 ### Monitoring Variables
 
-| Variable | Type | Default | Description |
-|----------|------|---------|-------------|
-| `SENTRY_ENABLED` | boolean | `false` | Enable Sentry error tracking |
-| `SENTRY_DSN` | string | - | Sentry DSN URL |
-| `SENTRY_TRACES_SAMPLE_RATE` | number | `1.0` | Sentry traces sample rate |
-| `SENTRY_PROFILES_SAMPLE_RATE` | number | `1.0` | Sentry profiles sample rate |
-| `ALERT_WEBHOOK_URL` | string | - | Webhook URL for alerts (e.g., Slack) |
+| Variable                      | Type    | Default | Description                          |
+| ----------------------------- | ------- | ------- | ------------------------------------ |
+| `SENTRY_ENABLED`              | boolean | `false` | Enable Sentry error tracking         |
+| `SENTRY_DSN`                  | string  | -       | Sentry DSN URL                       |
+| `SENTRY_TRACES_SAMPLE_RATE`   | number  | `1.0`   | Sentry traces sample rate            |
+| `SENTRY_PROFILES_SAMPLE_RATE` | number  | `1.0`   | Sentry profiles sample rate          |
+| `ALERT_WEBHOOK_URL`           | string  | -       | Webhook URL for alerts (e.g., Slack) |
 
 ### Payment Variables (Bot Service)
 
-| Variable | Type | Default | Description |
-|----------|------|---------|-------------|
-| `YOOKASSA_SHOP_ID` | string | - | YooKassa shop ID |
-| `YOOKASSA_SECRET_KEY` | string | - | YooKassa secret key |
-| `YOOKASSA_WEBHOOK_URL` | string | - | YooKassa webhook URL |
-| `YOOKASSA_WEBHOOK_SECRET` | string | - | YooKassa webhook secret |
+| Variable                  | Type   | Default | Description             |
+| ------------------------- | ------ | ------- | ----------------------- |
+| `YOOKASSA_SHOP_ID`        | string | -       | YooKassa shop ID        |
+| `YOOKASSA_SECRET_KEY`     | string | -       | YooKassa secret key     |
+| `YOOKASSA_WEBHOOK_URL`    | string | -       | YooKassa webhook URL    |
+| `YOOKASSA_WEBHOOK_SECRET` | string | -       | YooKassa webhook secret |
 
 ### Telegram Variables (Bot Service)
 
-| Variable | Type | Default | Description |
-|----------|------|---------|-------------|
-| `TELEGRAM_BOT_TOKEN` | string | **REQUIRED** | Telegram bot token |
-| `TELEGRAM_WEBHOOK_DOMAIN` | string | - | Webhook domain |
-| `TELEGRAM_WEBHOOK_PATH` | string | `/webhook/telegram` | Webhook path |
-| `TELEGRAM_WEBHOOK_URL` | string | - | Full webhook URL |
-| `TELEGRAM_WEBHOOK_SECRET` | string | - | Webhook secret for validation |
+| Variable                  | Type   | Default             | Description                   |
+| ------------------------- | ------ | ------------------- | ----------------------------- |
+| `TELEGRAM_BOT_TOKEN`      | string | **REQUIRED**        | Telegram bot token            |
+| `TELEGRAM_WEBHOOK_DOMAIN` | string | -                   | Webhook domain                |
+| `TELEGRAM_WEBHOOK_PATH`   | string | `/webhook/telegram` | Webhook path                  |
+| `TELEGRAM_WEBHOOK_URL`    | string | -                   | Full webhook URL              |
+| `TELEGRAM_WEBHOOK_SECRET` | string | -                   | Webhook secret for validation |
 
 For complete environment variable documentation, see [Config Package](packages/config/README.md).
 

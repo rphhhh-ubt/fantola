@@ -92,12 +92,15 @@ export class UserManager {
     private userCache: UserCache
   ) {}
 
-  async getOrCreateUser(telegramId: string, username?: string, firstName?: string): Promise<UserProfile> {
+  async getOrCreateUser(
+    telegramId: string,
+    username?: string,
+    firstName?: string
+  ): Promise<UserProfile> {
     return this.userCache.getOrFetchUserProfile(telegramId, async () => {
-      const result = await this.db.query(
-        `SELECT * FROM users WHERE telegram_id = $1`,
-        [telegramId]
-      );
+      const result = await this.db.query(`SELECT * FROM users WHERE telegram_id = $1`, [
+        telegramId,
+      ]);
 
       if (result.rows.length > 0) {
         const row = result.rows[0];
@@ -215,10 +218,10 @@ export class BotMiddleware {
 
         await ctx.reply(
           `⏱️ Rate limit exceeded.\n\n` +
-          `Please wait ${rateLimit.retryAfter} seconds before trying again.\n` +
-          `Your limit resets at ${rateLimit.resetAt.toLocaleTimeString()}.\n\n` +
-          `Current tier: ${user.tier}\n` +
-          `Upgrade your tier for higher limits with /upgrade`
+            `Please wait ${rateLimit.retryAfter} seconds before trying again.\n` +
+            `Your limit resets at ${rateLimit.resetAt.toLocaleTimeString()}.\n\n` +
+            `Current tier: ${user.tier}\n` +
+            `Upgrade your tier for higher limits with /upgrade`
         );
         return false;
       }
@@ -238,13 +241,13 @@ export class BotMiddleware {
 
         await ctx.reply(
           `❌ Insufficient tokens.\n\n` +
-          `This operation costs ${cost} tokens, but you have ${balance}.\n` +
-          `You need ${deficit} more tokens.\n\n` +
-          `Your current tier: ${user.tier}\n` +
-          `• Gift: 100 tokens/month (free after channel subscription)\n` +
-          `• Professional: 2000 tokens/month (1990₽)\n` +
-          `• Business: 10000 tokens/month (3490₽)\n\n` +
-          `Use /upgrade to upgrade your subscription.`
+            `This operation costs ${cost} tokens, but you have ${balance}.\n` +
+            `You need ${deficit} more tokens.\n\n` +
+            `Your current tier: ${user.tier}\n` +
+            `• Gift: 100 tokens/month (free after channel subscription)\n` +
+            `• Professional: 2000 tokens/month (1990₽)\n` +
+            `• Business: 10000 tokens/month (3490₽)\n\n` +
+            `Use /upgrade to upgrade your subscription.`
         );
         return false;
       }
@@ -269,8 +272,8 @@ export class BotMiddleware {
         // Send success message with remaining tokens and requests
         await ctx.reply(
           `\n\n✅ Tokens used: ${affordability.cost}\n` +
-          `💰 Remaining: ${deduction.newBalance} tokens\n` +
-          `⏱️ Requests remaining this minute: ${rateLimit.remaining}`
+            `💰 Remaining: ${deduction.newBalance} tokens\n` +
+            `⏱️ Requests remaining this minute: ${rateLimit.remaining}`
         );
 
         return true;
@@ -286,7 +289,7 @@ export class BotMiddleware {
 
         await ctx.reply(
           `❌ Operation failed. Your ${affordability.cost} tokens have been refunded.\n\n` +
-          `Please try again or contact support.`
+            `Please try again or contact support.`
         );
 
         return false;
@@ -323,12 +326,12 @@ export function registerCommands(
   bot.command('start', async (ctx) => {
     await ctx.reply(
       `👋 Welcome to the AI Bot!\n\n` +
-      `I can help you with:\n` +
-      `• /image <prompt> - Generate images\n` +
-      `• /chat <message> - Chat with AI\n` +
-      `• /balance - Check your token balance\n` +
-      `• /upgrade - Upgrade your subscription\n` +
-      `• /help - Show this message`
+        `I can help you with:\n` +
+        `• /image <prompt> - Generate images\n` +
+        `• /chat <message> - Chat with AI\n` +
+        `• /balance - Check your token balance\n` +
+        `• /upgrade - Upgrade your subscription\n` +
+        `• /help - Show this message`
     );
   });
 
@@ -343,14 +346,10 @@ export function registerCommands(
 
     await ctx.reply('🎨 Generating image...');
 
-    await middleware.handleRequest(
-      ctx,
-      OperationType.IMAGE_GENERATION,
-      async () => {
-        const imageUrl = await generateImage(prompt);
-        await ctx.replyWithPhoto({ url: imageUrl });
-      }
-    );
+    await middleware.handleRequest(ctx, OperationType.IMAGE_GENERATION, async () => {
+      const imageUrl = await generateImage(prompt);
+      await ctx.replyWithPhoto({ url: imageUrl });
+    });
   });
 
   // Chat command
@@ -364,14 +363,10 @@ export function registerCommands(
 
     await ctx.reply('💬 Thinking...');
 
-    await middleware.handleRequest(
-      ctx,
-      OperationType.CHATGPT_MESSAGE,
-      async () => {
-        const response = await getChatGPTResponse(message);
-        await ctx.reply(response);
-      }
-    );
+    await middleware.handleRequest(ctx, OperationType.CHATGPT_MESSAGE, async () => {
+      const response = await getChatGPTResponse(message);
+      await ctx.reply(response);
+    });
   });
 
   // Balance command
@@ -404,13 +399,13 @@ export function registerCommands(
 
     await ctx.reply(
       `💰 Your Token Balance\n\n` +
-      `Balance: ${balance.tokensBalance} tokens\n` +
-      `Spent: ${balance.tokensSpent} tokens\n` +
-      `Tier: ${user.tier}\n\n` +
-      `You can:\n` +
-      `• Send ${chatMessages} more chat messages (5 tokens each)\n` +
-      `• Generate ${images} more images (10 tokens each)\n\n` +
-      `Use /upgrade to get more tokens.`
+        `Balance: ${balance.tokensBalance} tokens\n` +
+        `Spent: ${balance.tokensSpent} tokens\n` +
+        `Tier: ${user.tier}\n\n` +
+        `You can:\n` +
+        `• Send ${chatMessages} more chat messages (5 tokens each)\n` +
+        `• Generate ${images} more images (10 tokens each)\n\n` +
+        `Use /upgrade to get more tokens.`
     );
   });
 
@@ -418,19 +413,19 @@ export function registerCommands(
   bot.command('upgrade', async (ctx) => {
     await ctx.reply(
       `📈 Upgrade Your Subscription\n\n` +
-      `**Gift Tier** (Free)\n` +
-      `• 100 tokens/month\n` +
-      `• 10 requests/minute\n` +
-      `• Requires channel subscription\n\n` +
-      `**Professional Tier** (1990₽/month)\n` +
-      `• 2000 tokens/month (20x more)\n` +
-      `• 50 requests/minute (5x more)\n` +
-      `• No channel required\n\n` +
-      `**Business Tier** (3490₽/month)\n` +
-      `• 10000 tokens/month (100x more)\n` +
-      `• 100 requests/minute (10x more)\n` +
-      `• Priority support\n\n` +
-      `Click below to upgrade:`,
+        `**Gift Tier** (Free)\n` +
+        `• 100 tokens/month\n` +
+        `• 10 requests/minute\n` +
+        `• Requires channel subscription\n\n` +
+        `**Professional Tier** (1990₽/month)\n` +
+        `• 2000 tokens/month (20x more)\n` +
+        `• 50 requests/minute (5x more)\n` +
+        `• No channel required\n\n` +
+        `**Business Tier** (3490₽/month)\n` +
+        `• 10000 tokens/month (100x more)\n` +
+        `• 100 requests/minute (10x more)\n` +
+        `• Priority support\n\n` +
+        `Click below to upgrade:`,
       {
         reply_markup: {
           inline_keyboard: [
@@ -448,14 +443,10 @@ export function registerCommands(
 
     if (text.startsWith('/')) return; // Ignore commands
 
-    await middleware.handleRequest(
-      ctx,
-      OperationType.CHATGPT_MESSAGE,
-      async () => {
-        const response = await getChatGPTResponse(text);
-        await ctx.reply(response);
-      }
-    );
+    await middleware.handleRequest(ctx, OperationType.CHATGPT_MESSAGE, async () => {
+      const response = await getChatGPTResponse(text);
+      await ctx.reply(response);
+    });
   });
 }
 ```
@@ -474,8 +465,8 @@ async function main() {
   registerCommands(
     bot,
     middleware,
-    generateImage,  // Your image generation function
-    getChatGPTResponse  // Your ChatGPT function
+    generateImage, // Your image generation function
+    getChatGPTResponse // Your ChatGPT function
   );
 
   // Start metrics server
@@ -549,9 +540,7 @@ export function scheduleTokenRenewal(
           // Invalidate cache
           await userCache.invalidateAllUserData(user.id);
 
-          monitoring.logger.info(
-            `Renewed tokens for Gift tier user: ${user.telegram_id}`
-          );
+          monitoring.logger.info(`Renewed tokens for Gift tier user: ${user.telegram_id}`);
         } catch (error) {
           monitoring.handleError(error, {
             context: 'token_renewal',
@@ -560,9 +549,7 @@ export function scheduleTokenRenewal(
         }
       }
 
-      monitoring.logger.info(
-        `Token renewal completed. Renewed ${result.rows.length} users`
-      );
+      monitoring.logger.info(`Token renewal completed. Renewed ${result.rows.length} users`);
     } catch (error) {
       monitoring.handleCriticalError(error, { context: 'token_renewal_job' });
     }

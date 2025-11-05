@@ -7,13 +7,16 @@ This directory contains GitHub Actions workflows for CI/CD automation.
 ### 1. CI Pipeline (`ci.yml`)
 
 **Triggers:**
+
 - Push to `main` branch
 - Pull requests targeting `main` branch
 
 **Jobs:**
+
 - `lint-typecheck-test`: Runs linting, type checking, building, and testing
 
 **Features:**
+
 - ✅ pnpm dependency caching for faster builds
 - ✅ Prisma client caching (when Prisma is used)
 - ✅ Automatic Prisma client generation
@@ -24,6 +27,7 @@ This directory contains GitHub Actions workflows for CI/CD automation.
 ### 2. Build & Deploy Pipeline (`build-deploy.yml`)
 
 **Triggers:**
+
 - Push to `main` branch
 - Version tags (e.g., `v1.0.0`)
 
@@ -63,6 +67,7 @@ Images are pushed with multiple tags for flexibility:
 ### pnpm Store Cache
 
 Caches the global pnpm store to speed up dependency installation:
+
 ```yaml
 key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
 ```
@@ -73,6 +78,7 @@ key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
 ### Prisma Client Cache
 
 Caches generated Prisma clients:
+
 ```yaml
 key: ${{ runner.os }}-prisma-${{ hashFiles('**/schema.prisma') }}
 ```
@@ -83,12 +89,14 @@ key: ${{ runner.os }}-prisma-${{ hashFiles('**/schema.prisma') }}
 ### Docker Build Cache
 
 Uses GitHub Actions cache for Docker layers:
+
 ```yaml
 cache-from: type=gha
 cache-to: type=gha,mode=max
 ```
 
 **Benefits:**
+
 - Faster rebuilds when only code changes
 - Efficient layer reuse across builds
 - Automatic cache management by GitHub
@@ -99,12 +107,12 @@ Configure these in: **Settings → Secrets and variables → Actions**
 
 ### For Migrations & Deployment
 
-| Secret | Description | Required | Example |
-|--------|-------------|----------|---------|
-| `DATABASE_URL` | PostgreSQL connection string | Yes (for migrations) | `postgresql://user:pass@host:5432/db` |
-| `DEPLOY_KEY` | SSH private key for deployment | Optional | SSH private key content |
-| `DEPLOY_HOST` | Deployment server hostname | Optional | `deploy.example.com` |
-| `DEPLOY_USER` | SSH username for deployment | Optional | `deployer` |
+| Secret         | Description                    | Required             | Example                               |
+| -------------- | ------------------------------ | -------------------- | ------------------------------------- |
+| `DATABASE_URL` | PostgreSQL connection string   | Yes (for migrations) | `postgresql://user:pass@host:5432/db` |
+| `DEPLOY_KEY`   | SSH private key for deployment | Optional             | SSH private key content               |
+| `DEPLOY_HOST`  | Deployment server hostname     | Optional             | `deploy.example.com`                  |
+| `DEPLOY_USER`  | SSH username for deployment    | Optional             | `deployer`                            |
 
 ### Built-in Secrets
 
@@ -127,7 +135,7 @@ The deployment step in `build-deploy.yml` is a placeholder. Customize it based o
     mkdir -p ~/.ssh
     echo "$DEPLOY_KEY" > ~/.ssh/deploy_key
     chmod 600 ~/.ssh/deploy_key
-    
+
     # Deploy via SSH
     ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no $DEPLOY_USER@$DEPLOY_HOST << 'EOF'
       cd /app
@@ -172,6 +180,7 @@ The deployment step in `build-deploy.yml` is a placeholder. Customize it based o
 ### Cache Issues
 
 If caches are causing issues, you can clear them:
+
 1. Go to **Actions** tab
 2. Click **Caches** in the left sidebar
 3. Delete problematic caches
@@ -187,6 +196,7 @@ If caches are causing issues, you can clear them:
 ## Monitoring
 
 Check workflow status:
+
 - **Actions tab**: View all workflow runs
 - **Pull requests**: See status checks
 - **README badges**: Quick status overview

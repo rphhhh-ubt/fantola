@@ -24,7 +24,7 @@ export interface UpdateProductCardRequest {
   options: Partial<ProductCardOptions>;
 }
 
-export interface ProductCardGeneration {
+export interface ProductCardGenerationResponse {
   id: string;
   userId: string;
   status: 'pending' | 'processing' | 'completed' | 'failed' | 'canceled';

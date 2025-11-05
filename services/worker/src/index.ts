@@ -8,6 +8,7 @@ import {
   QueueName,
   TokenService,
   db,
+  StatusPublisher,
 } from '@monorepo/shared';
 import { Monitoring } from '@monorepo/monitoring';
 import { ImageProcessor } from './processors/image-processor';
@@ -19,6 +20,7 @@ import { SoraProcessor } from './processors/sora-processor';
 import { ImageGenerationProcessor } from './processors/image-generation-processor';
 import { ChatProcessingProcessor } from './processors/chat-processing-processor';
 import { ProductCardProcessor } from './processors/product-card-processor';
+import Redis from 'ioredis';
 
 async function main() {
   const config = getWorkerConfig();
@@ -42,6 +44,16 @@ async function main() {
     port: config.redisPort,
     password: config.redisPassword,
   });
+
+  // Create separate Redis connection for pub/sub
+  const pubsubRedis = new Redis({
+    host: config.redisHost,
+    port: config.redisPort,
+    password: config.redisPassword,
+  });
+
+  // Initialize status publisher
+  const statusPublisher = new StatusPublisher(pubsubRedis);
 
   // Initialize worker service
   const workerService = new WorkerService(monitoring, redis, {
@@ -113,7 +125,7 @@ async function main() {
   });
 
   // Register processors
-  const exampleProcessor = new ExampleProcessor({ monitoring, tokenService });
+  const exampleProcessor = new ExampleProcessor({ monitoring, tokenService, statusPublisher });
   workerService.registerProcessor({
     queueName: QueueName.IMAGE_PROCESSING,
     processor: exampleProcessor,
@@ -124,6 +136,7 @@ async function main() {
   const imageGenerationProcessor = new ImageGenerationProcessor({
     monitoring,
     storageConfig,
+    statusPublisher,
   });
   workerService.registerProcessor({
     queueName: QueueName.IMAGE_GENERATION,
@@ -135,6 +148,7 @@ async function main() {
   const soraProcessor = new SoraProcessor({
     monitoring,
     storageConfig,
+    statusPublisher,
   });
   workerService.registerProcessor({
     queueName: QueueName.SORA_GENERATION,
@@ -145,6 +159,7 @@ async function main() {
   // Register Chat Processing processor
   const chatProcessor = new ChatProcessingProcessor({
     monitoring,
+    statusPublisher,
   });
   workerService.registerProcessor({
     queueName: QueueName.CHAT_PROCESSING,
@@ -156,6 +171,7 @@ async function main() {
   const productCardProcessor = new ProductCardProcessor({
     monitoring,
     storageConfig,
+    statusPublisher,
   });
   workerService.registerProcessor({
     queueName: QueueName.PRODUCT_CARD_GENERATION,

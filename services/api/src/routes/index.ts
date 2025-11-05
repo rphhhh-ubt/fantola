@@ -6,6 +6,7 @@ import webhookRoutes from './webhooks';
 import paymentRoutes from './payments';
 import soraRoutes from './sora';
 import productCardRoutes from './product-card';
+import generationsRoutes from './generations';
 
 const routes: FastifyPluginAsync = async (fastify) => {
   await fastify.register(healthRoutes, { prefix: '/health' });
@@ -15,6 +16,7 @@ const routes: FastifyPluginAsync = async (fastify) => {
   await fastify.register(paymentRoutes, { prefix: '/payments' });
   await fastify.register(soraRoutes, { prefix: '/sora' });
   await fastify.register(productCardRoutes, { prefix: '/product-card' });
+  await fastify.register(generationsRoutes, { prefix: '/generations' });
 };
 
 export default routes;

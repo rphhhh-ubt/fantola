@@ -1,7 +1,8 @@
 import { getApiConfig } from '@monorepo/config';
-import { DatabaseClient, setupDatabaseShutdown } from '@monorepo/shared';
+import { DatabaseClient, setupDatabaseShutdown, closeRedisConnections } from '@monorepo/shared';
 import { Monitoring } from '@monorepo/monitoring';
 import { buildApp } from './app';
+import Redis from 'ioredis';
 
 async function bootstrap() {
   const config = getApiConfig();
@@ -28,7 +29,14 @@ async function bootstrap() {
     },
   });
 
-  const app = await buildApp({ config, monitoring });
+  // Create Redis connection for pub/sub
+  const redis = new Redis({
+    host: config.redisHost,
+    port: config.redisPort,
+    password: config.redisPassword,
+  });
+
+  const app = await buildApp({ config, monitoring, redis });
 
   const shutdownHandlers: Array<() => Promise<void>> = [];
 
@@ -50,6 +58,11 @@ async function bootstrap() {
       async () => {
         monitoring.logger.info('Closing Fastify server...');
         await app.close();
+      },
+      async () => {
+        monitoring.logger.info('Closing Redis connections...');
+        await redis.quit();
+        await closeRedisConnections();
       },
       ...shutdownHandlers,
     ],

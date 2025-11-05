@@ -1,12 +1,10 @@
 import { Job } from 'bullmq';
 import { Monitoring } from '@monorepo/monitoring';
 import { db } from '@monorepo/database';
-import { BaseProcessor, TokenDeductionConfig } from './base-processor';
-import { ChatProcessingJobData, QueueName, JobResult } from '@monorepo/shared';
+import { BaseProcessor, TokenDeductionConfig, ProcessorContext } from './base-processor';
+import { ChatProcessingJobData, QueueName, JobResult, GenerationType } from '@monorepo/shared';
 
-export interface ChatProcessingProcessorConfig {
-  monitoring: Monitoring;
-}
+export interface ChatProcessingProcessorConfig extends ProcessorContext {}
 
 /**
  * Processor for chat processing jobs (ChatGPT, etc.)
@@ -23,6 +21,10 @@ export class ChatProcessingProcessor extends BaseProcessor<ChatProcessingJobData
       operationType: 'chatgpt_message',
       skipDeductionOnFailure: true,
     };
+  }
+
+  protected getGenerationType(): GenerationType {
+    return GenerationType.CHAT;
   }
 
   async process(job: Job<ChatProcessingJobData>): Promise<JobResult> {

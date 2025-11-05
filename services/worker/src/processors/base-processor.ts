@@ -1,6 +1,6 @@
 import type { Job } from 'bullmq';
 import type { Monitoring } from '@monorepo/monitoring';
-import { db, TokenService } from '@monorepo/shared';
+import { db, TokenService, StatusPublisher } from '@monorepo/shared';
 import type {
   JobData,
   JobResult,
@@ -15,6 +15,7 @@ import { GenerationStatus, OperationType } from '@monorepo/database';
 export interface ProcessorContext {
   monitoring: Monitoring;
   tokenService?: TokenService;
+  statusPublisher?: StatusPublisher;
 }
 
 /**
@@ -35,11 +36,13 @@ export abstract class BaseProcessor<T extends JobData = JobData> {
   protected monitoring: Monitoring;
   protected queueName: QueueName;
   protected tokenService: TokenService;
+  protected statusPublisher?: StatusPublisher;
 
   constructor(queueName: QueueName, context: ProcessorContext) {
     this.queueName = queueName;
     this.monitoring = context.monitoring;
     this.tokenService = context.tokenService || new TokenService(db);
+    this.statusPublisher = context.statusPublisher;
   }
 
   /**
@@ -52,6 +55,12 @@ export abstract class BaseProcessor<T extends JobData = JobData> {
       operationType: 'image_generation' as OperationType,
     };
   }
+
+  /**
+   * Get generation type for status updates
+   * Override this method to specify the generation type
+   */
+  protected abstract getGenerationType(): import('@monorepo/shared').GenerationType;
 
   /**
    * Main job processor function
@@ -224,38 +233,90 @@ export abstract class BaseProcessor<T extends JobData = JobData> {
   ): Promise<void> {
     try {
       const jobData = job.data as any;
-      
-      // Try to find generation record by job ID or user ID
-      // This is a stub - actual implementation depends on your job data structure
-      const generation = await db.generation.findFirst({
-        where: {
-          userId: jobData.userId,
-          status: {
-            in: [GenerationStatus.pending, GenerationStatus.processing],
-          },
-        },
-        orderBy: {
-          createdAt: 'desc',
-        },
-      });
+      const generationType = this.getGenerationType();
+      const generationId = jobData.generationId || job.id;
+      const userId = jobData.userId;
 
-      if (generation) {
+      if (!generationId || !userId) {
+        this.monitoring.logger.warn(
+          { jobId: job.id, jobData },
+          'Missing generationId or userId for status update'
+        );
+        return;
+      }
+
+      const updateData: any = {
+        status,
+        updatedAt: new Date(),
+      };
+
+      if (status === GenerationStatus.processing) {
+        updateData.startedAt = new Date();
+      } else if (status === GenerationStatus.completed || status === GenerationStatus.failed) {
+        updateData.completedAt = new Date();
+      }
+
+      if (resultData?.urls) {
+        updateData.resultUrls = resultData.urls;
+      }
+
+      if (resultData?.error) {
+        updateData.errorMessage = resultData.error;
+      }
+
+      // Update the appropriate table based on generation type
+      const GenerationType = await import('@monorepo/shared').then(m => m.GenerationType);
+      
+      if (generationType === GenerationType.PRODUCT_CARD) {
+        await db.productCardGeneration.update({
+          where: { id: generationId },
+          data: updateData,
+        });
+      } else if (generationType === GenerationType.SORA) {
+        await db.soraGeneration.update({
+          where: { id: generationId },
+          data: updateData,
+        });
+      } else if (generationType === GenerationType.CHAT) {
         await db.generation.update({
-          where: { id: generation.id },
-          data: {
-            status,
-            resultUrls: resultData?.urls || generation.resultUrls,
-            completedAt: status === GenerationStatus.completed ? new Date() : null,
-            errorMessage: status === GenerationStatus.failed ? resultData?.error : null,
+          where: { id: generationId },
+          data: updateData,
+        });
+      }
+
+      this.monitoring.logger.debug(
+        {
+          generationId,
+          status,
+          type: generationType,
+        },
+        'Updated generation status'
+      );
+
+      // Publish status update to Redis pub/sub
+      if (this.statusPublisher) {
+        await this.statusPublisher.publishStatusUpdate({
+          generationId,
+          userId,
+          type: generationType,
+          status,
+          timestamp: Date.now(),
+          metadata: {
+            tool: jobData.tool,
+            prompt: jobData.prompt,
+            resultUrls: resultData?.urls,
+            errorMessage: resultData?.error,
+            tokensUsed: jobData.tokensUsed,
           },
         });
 
         this.monitoring.logger.debug(
           {
-            generationId: generation.id,
+            generationId,
+            userId,
             status,
           },
-          'Updated generation status'
+          'Published status update to Redis'
         );
       }
     } catch (error) {

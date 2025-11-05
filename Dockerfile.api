@@ -1,63 +1,35 @@
-# Base stage
-FROM node:18-alpine AS base
+FROM node:18-alpine as base
 RUN npm install -g pnpm@9.12.3
 WORKDIR /app
 
-# Dependencies stage
-FROM base AS dependencies
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-COPY packages/config/package.json ./packages/config/
-COPY packages/shared/package.json ./packages/shared/
-COPY packages/database/package.json ./packages/database/
-COPY services/api/package.json ./services/api/
-RUN pnpm install --frozen-lockfile
-
-# Build stage
 FROM base as build
-WORKDIR /app
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY packages/config/package.json ./packages/config/
 COPY packages/shared/package.json ./packages/shared/
 COPY packages/database/package.json ./packages/database/
-COPY services/worker/package.json ./services/worker/
+COPY packages/monitoring/package.json ./packages/monitoring/
+COPY services/bot/package.json ./services/bot/
 RUN pnpm install --frozen-lockfile
 COPY . .
-RUN pnpm -F @monorepo/config build
-RUN pnpm -F @monorepo/database build
-RUN pnpm -F @monorepo/monitoring build
-RUN pnpm -F @monorepo/shared build
-RUN pnpm -F api build
+RUN pnpm -r build
 
-# Production stage
-FROM node:18-alpine AS production
-RUN npm install -g pnpm@9.12.3
-WORKDIR /app
-
-ENV NODE_ENV=production
-
-# Create storage directories with proper permissions
-RUN mkdir -p /var/www/storage/uploads \
-  /var/www/storage/generated \
-  /var/www/storage/processed && \
-  chown -R node:node /var/www/storage && \
-  chmod -R 755 /var/www/storage
-
+FROM base as production
+RUN apk add --no-cache dumb-init
+RUN addgroup -g 1001 -S nodejs && adduser -S nodejs -u 1001
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY packages/config/package.json ./packages/config/
 COPY packages/shared/package.json ./packages/shared/
 COPY packages/database/package.json ./packages/database/
-COPY services/api/package.json ./services/api/
-
+COPY packages/monitoring/package.json ./packages/monitoring/
+COPY services/bot/package.json ./services/bot/
 RUN HUSKY=0 pnpm install --frozen-lockfile --prod
-
-COPY --from=build /app/packages/config/dist ./packages/config/dist
-COPY --from=build /app/packages/shared/dist ./packages/shared/dist
-COPY --from=build /app/packages/database/dist ./packages/database/dist
-COPY --from=build /app/packages/database/prisma ./packages/database/prisma
-COPY --from=build /app/services/api/dist ./services/api/dist
-
+COPY --from=build --chown=nodejs:nodejs /app/packages/config/dist ./packages/config/dist
+COPY --from=build --chown=nodejs:nodejs /app/packages/shared/dist ./packages/shared/dist
+COPY --from=build --chown=nodejs:nodejs /app/packages/database/dist ./packages/database/dist
+COPY --from=build --chown=nodejs:nodejs /app/packages/database/prisma ./packages/database/prisma
+COPY --from=build --chown=nodejs:nodejs /app/packages/monitoring/dist ./packages/monitoring/dist
+COPY --from=build --chown=nodejs:nodejs /app/services/bot/dist ./services/bot/dist
+RUN pnpm --filter @monorepo/database prisma:generate
+USER nodejs
 EXPOSE 3000
-
-USER node
-
-CMD ["node", "services/api/dist/index.js"]
+CMD ["dumb-init", "node", "services/bot/dist/index.js"]

@@ -5,6 +5,7 @@ This document describes the database migration workflow using Prisma ORM in this
 ## Overview
 
 We use Prisma as our database ORM layer with PostgreSQL as the database. The `@monorepo/database` package contains:
+
 - Prisma schema definition
 - Migration files
 - Seed scripts
@@ -16,21 +17,25 @@ We use Prisma as our database ORM layer with PostgreSQL as the database. The `@m
 ### Initial Setup
 
 1. **Install dependencies:**
+
    ```bash
    pnpm install
    ```
 
 2. **Start PostgreSQL:**
+
    ```bash
    docker compose up -d postgres
    ```
 
 3. **Generate Prisma Client:**
+
    ```bash
    pnpm db:generate
    ```
 
 4. **Apply migrations:**
+
    ```bash
    pnpm db:migrate:deploy
    ```
@@ -47,34 +52,38 @@ We use Prisma as our database ORM layer with PostgreSQL as the database. The `@m
 When you need to modify the database schema:
 
 1. **Edit the schema:**
+
    ```bash
    # Edit packages/database/prisma/schema.prisma
    vim packages/database/prisma/schema.prisma
    ```
 
 2. **Create and apply migration:**
+
    ```bash
    pnpm db:migrate:dev
    ```
-   
+
    You'll be prompted to name your migration. Use a descriptive name like:
    - `add_user_avatar_field`
    - `create_notifications_table`
    - `add_payment_status_index`
 
 3. **Review the generated migration:**
+
    ```bash
    cat packages/database/prisma/migrations/[timestamp]_[name]/migration.sql
    ```
 
 4. **Test the migration:**
+
    ```bash
    # Reset database to clean state
    pnpm db:migrate:reset
-   
+
    # Run seed to populate test data
    pnpm db:seed
-   
+
    # Verify in Prisma Studio
    pnpm db:studio
    ```
@@ -91,34 +100,45 @@ When you need to modify the database schema:
 All database commands can be run from the root of the monorepo:
 
 #### Generate Prisma Client
+
 ```bash
 pnpm db:generate
 ```
+
 Generates TypeScript types from the Prisma schema. Run this after:
+
 - Cloning the repository
 - Pulling schema changes
 - Modifying the schema
 
 #### Create Migration (Development)
+
 ```bash
 pnpm db:migrate:dev
 ```
+
 Creates a new migration file and applies it. Use during development when making schema changes.
 
 #### Apply Migrations (Production)
+
 ```bash
 pnpm db:migrate:deploy
 ```
+
 Applies pending migrations without prompts. Use in:
+
 - CI/CD pipelines
 - Production deployments
 - Staging environments
 
 #### Reset Database (Development Only)
+
 ```bash
 pnpm db:migrate:reset
 ```
+
 ⚠️ **WARNING**: This will:
+
 1. Drop all data
 2. Recreate the database
 3. Apply all migrations
@@ -127,17 +147,22 @@ pnpm db:migrate:reset
 Only use in development!
 
 #### Seed Database
+
 ```bash
 pnpm db:seed
 ```
+
 Populates the database with:
+
 - Subscription tier configurations (Gift, Professional, Business)
 - Test users with different tiers
 
 #### Open Prisma Studio
+
 ```bash
 pnpm db:studio
 ```
+
 Opens a web UI at http://localhost:5555 to view and edit database data.
 
 ## Production Deployment
@@ -153,26 +178,30 @@ Opens a web UI at http://localhost:5555 to view and edit database data.
 ### Deployment Steps
 
 1. **Backup the database:**
+
    ```bash
    # Using docker
    docker exec monorepo-postgres pg_dump -U postgres monorepo_prod > backup.sql
-   
+
    # Or using pg_dump directly
    pg_dump $DATABASE_URL > backup.sql
    ```
 
 2. **Deploy code:**
+
    ```bash
    git pull origin main
    pnpm install
    ```
 
 3. **Apply migrations:**
+
    ```bash
    pnpm db:migrate:deploy
    ```
 
 4. **Verify deployment:**
+
    ```bash
    # Check migration status
    cd packages/database
@@ -189,16 +218,18 @@ Opens a web UI at http://localhost:5555 to view and edit database data.
 If a migration fails or causes issues:
 
 1. **Restore from backup:**
+
    ```bash
    # Stop services
    docker compose down
-   
+
    # Restore database
    docker compose up -d postgres
    cat backup.sql | docker exec -i monorepo-postgres psql -U postgres monorepo_prod
    ```
 
 2. **Revert code:**
+
    ```bash
    git revert [commit-hash]
    ```
@@ -223,31 +254,31 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    
+
     steps:
       - uses: actions/checkout@v3
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '18'
-          
+
       - name: Install pnpm
         run: npm install -g pnpm@8
-        
+
       - name: Install dependencies
         run: pnpm install
-        
+
       - name: Generate Prisma Client
         run: pnpm db:generate
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          
+
       - name: Apply migrations
         run: pnpm db:migrate:deploy
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          
+
       - name: Build
         run: pnpm build
 ```
@@ -275,38 +306,45 @@ Add to `railway.json`:
 ### Core Models
 
 #### User
+
 - Telegram user information
 - Subscription tier management
 - Token balance tracking
 - Channel subscription status
 
 #### TokenOperation
+
 - Audit log for token operations
 - Balance tracking (before/after)
 - Operation types: generation, refund, purchase, monthly reset
 
 #### SubscriptionHistory
+
 - Subscription purchase history
 - Price and payment method tracking
 - Start and expiration dates
 
 #### Generation
+
 - AI generation tracking (DALL-E, Sora, Stable Diffusion, ChatGPT)
 - Prompt and result storage
 - Status tracking
 - Token usage
 
 #### ChatMessage
+
 - Chat message history
 - Conversation grouping
 - Token usage per message
 
 #### Payment
+
 - Payment processing tracking
 - Multiple provider support (YooKassa, Stripe)
 - Status tracking and external ID mapping
 
 #### SubscriptionTierConfig
+
 - Subscription tier metadata
 - Monthly token allocations
 - Rate limiting parameters
@@ -340,6 +378,7 @@ Add to `railway.json`:
 ### "Cannot find module '@prisma/client'"
 
 **Solution:**
+
 ```bash
 pnpm db:generate
 ```
@@ -347,6 +386,7 @@ pnpm db:generate
 ### "Database does not exist"
 
 **Solution:**
+
 ```bash
 # Using docker-compose
 docker compose up -d postgres
@@ -358,6 +398,7 @@ createdb monorepo_dev
 ### "Migration is in a failed state"
 
 **Solution:**
+
 ```bash
 cd packages/database
 
@@ -371,6 +412,7 @@ pnpm prisma:migrate:deploy
 ### Schema changes not reflected in TypeScript
 
 **Solution:**
+
 ```bash
 # Regenerate client
 pnpm db:generate
@@ -389,6 +431,7 @@ This is normal when migrations are already in sync with the database.
 ### "Error: P1001 Can't reach database server"
 
 **Solution:**
+
 - Check DATABASE_URL is correct
 - Ensure PostgreSQL is running
 - Check network connectivity
@@ -405,16 +448,19 @@ DATABASE_URL=postgresql://[user]:[password]@[host]:[port]/[database]
 ### Examples
 
 **Development:**
+
 ```env
 DATABASE_URL=postgresql://postgres:postgres@localhost:5432/monorepo_dev
 ```
 
 **Production:**
+
 ```env
 DATABASE_URL=postgresql://user:password@prod-host:5432/monorepo_prod
 ```
 
 **Docker:**
+
 ```env
 DATABASE_URL=postgresql://postgres:postgres@postgres:5432/monorepo
 ```
@@ -424,6 +470,7 @@ DATABASE_URL=postgresql://postgres:postgres@postgres:5432/monorepo
 ### Install as Dependency
 
 Add to service `package.json`:
+
 ```json
 {
   "dependencies": {

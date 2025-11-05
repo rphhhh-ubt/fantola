@@ -12,12 +12,14 @@ Thank you for your interest in contributing to this project! This guide will hel
 ### Installation
 
 1. Clone the repository:
+
    ```bash
    git clone <repository-url>
    cd monorepo
    ```
 
 2. Install dependencies:
+
    ```bash
    pnpm install
    ```
@@ -32,11 +34,13 @@ Thank you for your interest in contributing to this project! This guide will hel
 ### Running Services
 
 Run all services in development mode:
+
 ```bash
 pnpm dev
 ```
 
 Run a specific service:
+
 ```bash
 pnpm api:dev      # API service
 pnpm bot:dev      # Bot service
@@ -79,6 +83,7 @@ Follow conventional commits format:
 - `chore:` - Build process or auxiliary tool changes
 
 Examples:
+
 ```bash
 git commit -m "feat: add user authentication"
 git commit -m "fix: resolve memory leak in worker service"
@@ -95,11 +100,13 @@ git commit -m "docs: update API documentation"
 ### Adding Dependencies
 
 Add a dependency to a specific workspace:
+
 ```bash
 pnpm --filter <workspace-name> add <package-name>
 ```
 
 Add a dev dependency to root:
+
 ```bash
 pnpm add -w -D <package-name>
 ```

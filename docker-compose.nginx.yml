@@ -6,8 +6,8 @@ services:
     container_name: monorepo-nginx
     restart: unless-stopped
     ports:
-      - "80:80"
-      - "443:443"
+      - '80:80'
+      - '443:443'
     volumes:
       - ./deploy/nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
       - ./deploy/nginx/ssl:/etc/nginx/ssl:ro
@@ -18,7 +18,7 @@ services:
     depends_on:
       - api
     healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost/health"]
+      test: ['CMD', 'wget', '--spider', '-q', 'http://localhost/health']
       interval: 30s
       timeout: 10s
       retries: 3

@@ -5,6 +5,7 @@ This document describes how to track Key Performance Indicators (KPIs) across th
 ## Overview
 
 The system tracks the following KPIs:
+
 1. **Active Users** - Currently active users in the system
 2. **Generation Success/Failure** - Success rate of content generation
 3. **Token Spend** - AI token consumption
@@ -31,11 +32,13 @@ monitoring.trackKPI({
 ```
 
 **When to track:**
+
 - User sends a message (bot service)
 - User makes an API request (api service)
 - User session starts
 
 **Metric exposed:**
+
 - `active_users_total{service="bot"}`
 
 ### 2. Generation Success/Failure
@@ -52,23 +55,26 @@ monitoring.trackKPI({
 // Failure
 monitoring.trackKPI({
   type: 'generation_failure',
-  data: { 
+  data: {
     type: 'image',
-    errorType: 'timeout' // or 'api_error', 'validation_error', etc.
+    errorType: 'timeout', // or 'api_error', 'validation_error', etc.
   },
 });
 ```
 
 **When to track:**
+
 - After calling AI generation APIs (OpenAI, Anthropic, etc.)
 - On worker job completion
 - After content creation pipeline
 
 **Metrics exposed:**
+
 - `generation_success_total{service="worker",type="image"}`
 - `generation_failure_total{service="worker",type="image",error_type="timeout"}`
 
 **Business insights:**
+
 - Success rate: `success / (success + failure)`
 - Most common failure types
 - Generation volume by type
@@ -89,20 +95,24 @@ monitoring.trackKPI({
 ```
 
 **When to track:**
+
 - After every AI API call
 - When processing batch operations
 - On worker job completion
 
 **Metric exposed:**
+
 - `token_spend_total{service="worker",model="gpt-4",type="completion"}`
 
 **Business insights:**
+
 - Total cost: `(tokens / 1000) * price_per_1k_tokens`
 - Cost by model
 - Cost trends over time
 - Cost per user
 
 **Example cost calculation:**
+
 ```typescript
 // GPT-4 pricing: $0.03/1K input tokens, $0.06/1K output tokens
 const inputCost = (inputTokens / 1000) * 0.03;
@@ -146,15 +156,18 @@ monitoring.trackKPI({
 ```
 
 **When to track:**
+
 - After payment gateway response
 - On webhook confirmation
 - After subscription renewal
 
 **Metrics exposed:**
+
 - `payment_conversions_total{service="api",payment_method="card",plan="premium"}`
 - `payment_failures_total{service="api",payment_method="card",error_type="insufficient_funds"}`
 
 **Business insights:**
+
 - Conversion rate: `conversions / (conversions + failures)`
 - Revenue by plan
 - Most common payment failure reasons
@@ -162,6 +175,7 @@ monitoring.trackKPI({
 
 **Alerting:**
 Payment failures trigger automatic alerts:
+
 ```typescript
 // Alerts are automatically sent when tracking payment failures
 // Custom alert for high-value failures:
@@ -191,7 +205,7 @@ monitoring.metrics.setActiveJobs(queueName, activeCount);
 try {
   // Process job
   await processJob(job);
-  
+
   // Track success
   monitoring.trackKPI({
     type: 'generation_success',
@@ -204,7 +218,7 @@ try {
     jobId: job.id,
     attempts: job.attempts,
   });
-  
+
   monitoring.trackKPI({
     type: 'generation_failure',
     data: { type: jobType, errorType: error.name },
@@ -217,11 +231,13 @@ try {
 ```
 
 **Metrics exposed:**
+
 - `queue_failures_total{service="worker",queue_name="image-generation",error_type="timeout"}`
 - `queue_job_duration_seconds{service="worker",queue_name="image-generation",job_type="dalle-3"}`
 - `active_jobs_total{service="worker",queue_name="image-generation"}`
 
 **Business insights:**
+
 - P95 job duration
 - Queue throughput
 - Failure rate by error type
@@ -234,17 +250,21 @@ Automatically tracked with middleware:
 ```typescript
 import { createExpressMetricsMiddleware } from '@monorepo/monitoring';
 
-app.use(createExpressMetricsMiddleware({
-  monitoring,
-  ignorePaths: ['/health', '/metrics'],
-}));
+app.use(
+  createExpressMetricsMiddleware({
+    monitoring,
+    ignorePaths: ['/health', '/metrics'],
+  })
+);
 ```
 
 **Metrics exposed:**
+
 - `http_requests_total{service="api",method="POST",route="/api/generate",status_code="200"}`
 - `http_request_duration_seconds{service="api",method="POST",route="/api/generate",status_code="200"}`
 
 **Business insights:**
+
 - Request rate
 - P95/P99 response times
 - Error rate (4xx/5xx)
@@ -267,15 +287,18 @@ bot.on('message', async (msg) => {
   });
 
   // Log message
-  monitoring.logger.info({
-    userId: msg.from.id,
-    text: msg.text,
-  }, 'Message received');
+  monitoring.logger.info(
+    {
+      userId: msg.from.id,
+      text: msg.text,
+    },
+    'Message received'
+  );
 
   try {
     // Call AI to generate response
     const response = await generateResponse(msg.text);
-    
+
     // Track token usage
     monitoring.trackKPI({
       type: 'token_spend',
@@ -318,11 +341,14 @@ import { Monitoring } from '@monorepo/monitoring';
 const monitoring = new Monitoring({ service: 'api' });
 
 async function processPayment(userId: string, plan: string, amount: number) {
-  monitoring.logger.info({
-    userId,
-    plan,
-    amount,
-  }, 'Processing payment');
+  monitoring.logger.info(
+    {
+      userId,
+      plan,
+      amount,
+    },
+    'Processing payment'
+  );
 
   try {
     const payment = await paymentGateway.createPayment({
@@ -344,12 +370,15 @@ async function processPayment(userId: string, plan: string, amount: number) {
         },
       });
 
-      monitoring.logger.info({
-        userId,
-        paymentId: payment.id,
-        plan,
-        amount,
-      }, 'Payment successful');
+      monitoring.logger.info(
+        {
+          userId,
+          paymentId: payment.id,
+          plan,
+          amount,
+        },
+        'Payment successful'
+      );
 
       return { success: true, paymentId: payment.id };
     } else {
@@ -373,12 +402,15 @@ async function processPayment(userId: string, plan: string, amount: number) {
       amount,
     });
 
-    monitoring.logger.error({
-      err: error,
-      userId,
-      plan,
-      amount,
-    }, 'Payment failed');
+    monitoring.logger.error(
+      {
+        err: error,
+        userId,
+        plan,
+        amount,
+      },
+      'Payment failed'
+    );
 
     throw error;
   }
@@ -396,11 +428,14 @@ async function processImageGenerationJob(job: Job) {
   const queueName = 'image-generation';
   const jobType = 'dalle-3';
 
-  monitoring.logger.info({
-    jobId: job.id,
-    userId: job.data.userId,
-    prompt: job.data.prompt,
-  }, 'Processing image generation job');
+  monitoring.logger.info(
+    {
+      jobId: job.id,
+      userId: job.data.userId,
+      prompt: job.data.prompt,
+    },
+    'Processing image generation job'
+  );
 
   // Start timer and track active jobs
   const endTimer = monitoring.metrics.startJobTimer(queueName, jobType);
@@ -431,17 +466,20 @@ async function processImageGenerationJob(job: Job) {
       data: { type: 'image' },
     });
 
-    monitoring.logger.info({
-      jobId: job.id,
-      userId: job.data.userId,
-      imageUrl: image.data[0].url,
-    }, 'Image generated successfully');
+    monitoring.logger.info(
+      {
+        jobId: job.id,
+        userId: job.data.userId,
+        imageUrl: image.data[0].url,
+      },
+      'Image generated successfully'
+    );
 
     return { success: true, imageUrl: image.data[0].url };
   } catch (error) {
     // Track failure
     monitoring.metrics.trackQueueFailure(queueName, error.name);
-    
+
     monitoring.trackKPI({
       type: 'generation_failure',
       data: { type: 'image', errorType: error.name },
@@ -455,11 +493,14 @@ async function processImageGenerationJob(job: Job) {
       attempts: job.attemptsMade,
     });
 
-    monitoring.logger.error({
-      err: error,
-      jobId: job.id,
-      userId: job.data.userId,
-    }, 'Image generation failed');
+    monitoring.logger.error(
+      {
+        err: error,
+        jobId: job.id,
+        userId: job.data.userId,
+      },
+      'Image generation failed'
+    );
 
     throw error;
   } finally {
@@ -477,28 +518,33 @@ See `packages/monitoring/ANALYTICS.md` for complete dashboard configurations and
 ### Quick Queries
 
 **Active Users:**
+
 ```promql
 sum(active_users_total)
 ```
 
 **Generation Success Rate:**
+
 ```promql
-sum(rate(generation_success_total[5m])) / 
+sum(rate(generation_success_total[5m])) /
 (sum(rate(generation_success_total[5m])) + sum(rate(generation_failure_total[5m]))) * 100
 ```
 
 **Token Spend per Hour:**
+
 ```promql
 sum(rate(token_spend_total[1h])) * 3600
 ```
 
 **Payment Conversion Rate:**
+
 ```promql
-sum(rate(payment_conversions_total[5m])) / 
+sum(rate(payment_conversions_total[5m])) /
 (sum(rate(payment_conversions_total[5m])) + sum(rate(payment_failures_total[5m]))) * 100
 ```
 
 **Queue P95 Duration:**
+
 ```promql
 histogram_quantile(0.95, sum(rate(queue_job_duration_seconds_bucket[5m])) by (le, queue_name))
 ```
@@ -516,16 +562,19 @@ histogram_quantile(0.95, sum(rate(queue_job_duration_seconds_bucket[5m])) by (le
 ## Troubleshooting
 
 **Metrics not appearing:**
+
 1. Check service is exposing metrics: `curl http://localhost:9091/metrics`
 2. Verify `ENABLE_METRICS=true` in environment
 3. Check Prometheus scrape targets
 
 **Incorrect counts:**
+
 1. Use `rate()` for counters, not raw values
 2. Ensure you're tracking all code paths (success and failure)
 3. Check for duplicate tracking calls
 
 **High cardinality warnings:**
+
 1. Don't use user IDs as metric labels
 2. Limit the number of unique values for labels
 3. Use log context for high-cardinality data

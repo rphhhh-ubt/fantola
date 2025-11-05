@@ -57,7 +57,7 @@ Use this checklist before deploying to production to ensure everything is proper
 - [ ] Deploy infrastructure (database, Redis, storage)
 - [ ] Deploy application services
   - [ ] API service
-  - [ ] Bot service  
+  - [ ] Bot service
   - [ ] Worker service
 - [ ] Run database migrations: `make db-migrate`
 - [ ] Verify database schema
@@ -210,11 +210,13 @@ Use this checklist before deploying to production to ensure everything is proper
 ### When to Scale
 
 Scale API when:
+
 - [ ] Response times > 500ms
 - [ ] CPU usage > 70%
 - [ ] Memory usage > 80%
 
 Scale Workers when:
+
 - [ ] Queue length > 100 jobs
 - [ ] Job processing time increases
 - [ ] Worker CPU > 70%
@@ -250,10 +252,10 @@ If something goes wrong:
 
 Document key contacts:
 
-- [ ] DevOps lead: _______________
-- [ ] Database admin: _______________
-- [ ] Security team: _______________
-- [ ] Platform support: _______________
+- [ ] DevOps lead: **\*\***\_\_\_**\*\***
+- [ ] Database admin: **\*\***\_\_\_**\*\***
+- [ ] Security team: **\*\***\_\_\_**\*\***
+- [ ] Platform support: **\*\***\_\_\_**\*\***
 
 ## Success Criteria
 
@@ -272,13 +274,14 @@ Deployment is successful when:
 
 ## Sign-Off
 
-- [ ] Deployed by: _______________ Date: _______________
-- [ ] Verified by: _______________ Date: _______________
-- [ ] Security review: _______________ Date: _______________
+- [ ] Deployed by: **\*\***\_\_\_**\*\*** Date: **\*\***\_\_\_**\*\***
+- [ ] Verified by: **\*\***\_\_\_**\*\*** Date: **\*\***\_\_\_**\*\***
+- [ ] Security review: **\*\***\_\_\_**\*\*** Date: **\*\***\_\_\_**\*\***
 
 ---
 
-**Remember:** 
+**Remember:**
+
 - Take your time with each step
 - Don't skip security checks
 - Always test in staging first
@@ -286,6 +289,7 @@ Deployment is successful when:
 - Monitor closely after deployment
 
 For detailed instructions, refer to:
+
 - [Deployment Guide](DEPLOYMENT.md)
 - [Operations Guide](OPERATIONS.md)
 - [Quickstart Guide](QUICKSTART.md)

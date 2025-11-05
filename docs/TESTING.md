@@ -68,6 +68,7 @@ pnpm test:ci
 ```
 
 This command runs tests with:
+
 - Coverage enabled
 - CI optimizations (`--ci` flag)
 - Limited parallelism (`--maxWorkers=2`)
@@ -267,6 +268,7 @@ createMockEnv({ NODE_ENV: 'test' });
 Test individual functions, classes, or modules in isolation.
 
 **Characteristics:**
+
 - Fast execution
 - No external dependencies
 - Heavy use of mocks
@@ -293,6 +295,7 @@ describe('isValidEmail', () => {
 Test multiple components working together with limited mocking.
 
 **Characteristics:**
+
 - Moderate execution speed
 - May use test databases/services
 - Tests component interactions
@@ -321,6 +324,7 @@ describe('User Registration Flow', () => {
 Test complete user workflows through the entire system.
 
 **Characteristics:**
+
 - Slowest execution
 - Uses real services (Docker containers)
 - Tests full user scenarios

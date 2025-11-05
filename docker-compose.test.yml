@@ -9,12 +9,12 @@ services:
       POSTGRES_USER: ${POSTGRES_TEST_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_TEST_PASSWORD:-postgres}
     ports:
-      - "${POSTGRES_TEST_PORT:-5433}:5432"
+      - '${POSTGRES_TEST_PORT:-5433}:5432'
     volumes:
       - postgres_test_data:/var/lib/postgresql/data
       - ./scripts/db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_TEST_USER:-postgres}"]
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_TEST_USER:-postgres}']
       interval: 5s
       timeout: 5s
       retries: 5
@@ -23,11 +23,11 @@ services:
     image: redis:7-alpine
     container_name: monorepo-redis-test
     ports:
-      - "${REDIS_TEST_PORT:-6380}:6379"
+      - '${REDIS_TEST_PORT:-6380}:6379'
     volumes:
       - redis_test_data:/data
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ['CMD', 'redis-cli', 'ping']
       interval: 5s
       timeout: 5s
       retries: 5

@@ -9,6 +9,7 @@ The project previously used raw SQL migrations in `scripts/db/migrations/`. We'v
 ## What Changed
 
 ### Before (SQL Scripts)
+
 - Manual SQL files in `scripts/db/migrations/001_add_telegram_users.sql`
 - No type safety
 - Manual query writing
@@ -16,6 +17,7 @@ The project previously used raw SQL migrations in `scripts/db/migrations/`. We'v
 - Complex joins and relations
 
 ### After (Prisma)
+
 - Type-safe Prisma Client with auto-generated types
 - Schema-first approach with `prisma/schema.prisma`
 - Automatic migration generation
@@ -29,6 +31,7 @@ The Prisma schema (`packages/database/prisma/schema.prisma`) implements the same
 ### Users Table
 
 **SQL (before):**
+
 ```sql
 CREATE TABLE users (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -48,6 +51,7 @@ CREATE TABLE users (
 ```
 
 **Prisma (after):**
+
 ```prisma
 model User {
   id        String   @id @default(uuid()) @db.Uuid
@@ -101,16 +105,15 @@ enum SubscriptionTier {
 ### Querying Users
 
 **Before (Raw SQL):**
+
 ```typescript
-const result = await pool.query(
-  'SELECT * FROM users WHERE telegram_id = $1',
-  [telegramId]
-);
+const result = await pool.query('SELECT * FROM users WHERE telegram_id = $1', [telegramId]);
 const user = result.rows[0];
 // No type safety, manual row parsing
 ```
 
 **After (Prisma):**
+
 ```typescript
 import { db } from '@monorepo/database';
 
@@ -127,6 +130,7 @@ const user = await db.user.findUnique({
 ### Creating Users
 
 **Before (Raw SQL):**
+
 ```typescript
 await pool.query(
   `INSERT INTO users (telegram_id, username, first_name, tier, tokens_balance)
@@ -136,6 +140,7 @@ await pool.query(
 ```
 
 **After (Prisma):**
+
 ```typescript
 const user = await db.user.create({
   data: {
@@ -151,17 +156,22 @@ const user = await db.user.create({
 ### Complex Queries with Joins
 
 **Before (Raw SQL):**
+
 ```typescript
-const result = await pool.query(`
+const result = await pool.query(
+  `
   SELECT u.*, COUNT(to.id) as operation_count
   FROM users u
   LEFT JOIN token_operations to ON u.id = to.user_id
   WHERE u.tier = $1
   GROUP BY u.id
-`, ['Professional']);
+`,
+  ['Professional']
+);
 ```
 
 **After (Prisma):**
+
 ```typescript
 const users = await db.user.findMany({
   where: { tier: 'Professional' },
@@ -172,7 +182,7 @@ const users = await db.user.findMany({
   },
 });
 // Count in memory or use aggregation
-const usersWithCount = users.map(user => ({
+const usersWithCount = users.map((user) => ({
   ...user,
   operationCount: user.tokenOperations.length,
 }));
@@ -183,7 +193,9 @@ const usersWithCount = users.map(user => ({
 The Prisma schema includes additional models not in the original SQL:
 
 ### Generation Model
+
 Tracks AI generation requests:
+
 ```prisma
 model Generation {
   id        String   @id @default(uuid())
@@ -198,7 +210,9 @@ model Generation {
 ```
 
 ### ChatMessage Model
+
 Stores chat message history:
+
 ```prisma
 model ChatMessage {
   id        String   @id @default(uuid())
@@ -212,7 +226,9 @@ model ChatMessage {
 ```
 
 ### Payment Model
+
 Tracks payment processing:
+
 ```prisma
 model Payment {
   id            String   @id @default(uuid())
@@ -227,7 +243,9 @@ model Payment {
 ```
 
 ### SubscriptionTierConfig Model
+
 Stores tier configuration:
+
 ```prisma
 model SubscriptionTierConfig {
   tier              SubscriptionTier @unique
@@ -258,11 +276,13 @@ model SubscriptionTierConfig {
 ### If Migrating Existing Data
 
 1. **Backup your database:**
+
    ```bash
    pg_dump $DATABASE_URL > backup.sql
    ```
 
 2. **Generate initial Prisma migration from existing schema:**
+
    ```bash
    cd packages/database
    pnpm prisma db pull          # Pull schema from database
@@ -284,19 +304,20 @@ model SubscriptionTierConfig {
 
 Database columns remain unchanged, but TypeScript property names use camelCase:
 
-| Database Column | TypeScript Property |
-|----------------|-------------------|
-| `telegram_id` | `telegramId` |
-| `first_name` | `firstName` |
-| `last_name` | `lastName` |
-| `tokens_balance` | `tokensBalance` |
-| `tokens_spent` | `tokensSpent` |
+| Database Column           | TypeScript Property     |
+| ------------------------- | ----------------------- |
+| `telegram_id`             | `telegramId`            |
+| `first_name`              | `firstName`             |
+| `last_name`               | `lastName`              |
+| `tokens_balance`          | `tokensBalance`         |
+| `tokens_spent`            | `tokensSpent`           |
 | `subscription_expires_at` | `subscriptionExpiresAt` |
-| `channel_subscribed_at` | `channelSubscribedAt` |
+| `channel_subscribed_at`   | `channelSubscribedAt`   |
 
 ### Enum Changes
 
 The `tier` field now uses a TypeScript enum:
+
 ```typescript
 import { SubscriptionTier } from '@monorepo/database';
 
@@ -314,22 +335,26 @@ All database queries now use Prisma Client API instead of raw SQL.
 ## Benefits of Prisma
 
 ### 1. Type Safety
+
 ```typescript
 // TypeScript knows all fields and their types
 const user = await db.user.findUnique({ where: { telegramId: '123' } });
 user.tokensBalance; // number
-user.firstName;     // string | null
-user.tier;          // SubscriptionTier enum
+user.firstName; // string | null
+user.tier; // SubscriptionTier enum
 ```
 
 ### 2. Auto-completion
+
 Your IDE provides suggestions for:
+
 - Model names
 - Field names
 - Query methods
 - Relations
 
 ### 3. Relations
+
 ```typescript
 // Load user with all relations in one query
 const user = await db.user.findUnique({
@@ -345,6 +370,7 @@ const user = await db.user.findUnique({
 ```
 
 ### 4. Migrations
+
 ```bash
 # Automatic migration generation
 pnpm db:migrate:dev
@@ -353,12 +379,14 @@ pnpm db:migrate:dev
 ```
 
 ### 5. Seeding
+
 ```bash
 # Consistent test data
 pnpm db:seed
 ```
 
 ### 6. Prisma Studio
+
 ```bash
 # Visual database browser
 pnpm db:studio

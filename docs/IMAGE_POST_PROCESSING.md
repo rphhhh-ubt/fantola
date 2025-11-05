@@ -25,14 +25,17 @@ Each processed image generates two quality variants:
 ### Tool-Specific Quality Presets
 
 #### DALL-E
+
 - **Normal**: 1024x1024px, JPEG, 80% quality
 - **High-Quality**: 2048x2048px, WebP, 95% quality
 
 #### Sora
+
 - **Normal**: 1280x720px, JPEG, 85% quality
 - **High-Quality**: 1920x1080px, WebP, 95% quality
 
 #### Stable Diffusion
+
 - **Normal**: 768x768px, JPEG, 80% quality
 - **High-Quality**: 1536x1536px, WebP, 95% quality
 
@@ -59,6 +62,7 @@ services/worker/
 #### `ImageProcessor`
 
 Main class responsible for:
+
 - Loading source images from Buffer, S3, or URL
 - Processing images with sharp
 - Generating multiple quality variants
@@ -66,10 +70,12 @@ Main class responsible for:
 - Tracking processing metrics
 
 **Constructor Parameters:**
+
 - `storageConfig`: S3 storage configuration
 - `monitoring`: Monitoring instance for logging and metrics
 
 **Main Method:**
+
 ```typescript
 async processImage(job: ImageProcessingJob): Promise<ImageProcessingResult>
 ```
@@ -211,6 +217,7 @@ The processor implements comprehensive error handling:
 - **Memory Errors**: Out of memory, buffer size limits
 
 All errors are:
+
 1. Logged with full context
 2. Tracked in metrics
 3. Returned in the result object
@@ -266,6 +273,7 @@ Tests:       41 passed, 41 total
 ### Processing Speed
 
 Typical processing times:
+
 - Small images (512x512): ~200-300ms
 - Medium images (1024x1024): ~400-600ms
 - Large images (2048x2048): ~800-1200ms

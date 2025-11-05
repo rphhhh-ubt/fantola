@@ -80,6 +80,7 @@ Or if not subscribed:
 ### Cache Invalidation
 
 Cache is automatically invalidated on:
+
 - Manual invalidation via `invalidateCache(userId)`
 - TTL expiration (10 minutes)
 
@@ -112,7 +113,7 @@ The system handles various error scenarios:
 ### Private Account
 
 ```
-❌ Your account privacy settings prevent us from verifying your channel subscription. 
+❌ Your account privacy settings prevent us from verifying your channel subscription.
 Please adjust your settings or upgrade to a paid plan.
 ```
 
@@ -132,14 +133,14 @@ Please adjust your settings or upgrade to a paid plan.
 
 Telegram API returns different member statuses:
 
-| Status | Is Member? | Description |
-|--------|-----------|-------------|
-| `member` | ✅ Yes | Regular channel member |
-| `administrator` | ✅ Yes | Channel administrator |
-| `creator` | ✅ Yes | Channel creator/owner |
-| `restricted` | ❌ No | Member with restrictions |
-| `left` | ❌ No | User left the channel |
-| `kicked` | ❌ No | User was banned |
+| Status          | Is Member? | Description              |
+| --------------- | ---------- | ------------------------ |
+| `member`        | ✅ Yes     | Regular channel member   |
+| `administrator` | ✅ Yes     | Channel administrator    |
+| `creator`       | ✅ Yes     | Channel creator/owner    |
+| `restricted`    | ❌ No      | Member with restrictions |
+| `left`          | ❌ No      | User left the channel    |
+| `kicked`        | ❌ No      | User was banned          |
 
 ## Integration Examples
 
@@ -212,6 +213,7 @@ The service tracks KPIs for:
 - API error frequencies
 
 Logs include:
+
 - Membership check results (debug level)
 - Cache hits/misses (debug level)
 - API errors (error level)
@@ -232,6 +234,7 @@ Logs include:
 **Issue**: API error "chat not found"
 
 **Solution**: Make sure:
+
 1. Bot is added to the channel as administrator
 2. Channel ID is correct (including @ for usernames)
 3. Channel is not private without bot access
@@ -241,6 +244,7 @@ Logs include:
 **Issue**: Cache showing outdated status
 
 **Solutions**:
+
 1. Wait 10 minutes for cache to expire, or
 2. Manually invalidate cache for affected users, or
 3. Reduce cache TTL if this happens frequently

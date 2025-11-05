@@ -42,7 +42,7 @@ COPY packages/shared/package.json ./packages/shared/
 COPY packages/database/package.json ./packages/database/
 COPY services/bot/package.json ./services/bot/
 
-RUN pnpm install --frozen-lockfile --prod
+RUN HUSKY=0 pnpm install --frozen-lockfile --prod
 
 COPY --from=build /app/packages/config/dist ./packages/config/dist
 COPY --from=build /app/packages/shared/dist ./packages/shared/dist

@@ -11,7 +11,11 @@ COPY packages/monitoring/package.json ./packages/monitoring/
 COPY services/worker/package.json ./services/worker/
 RUN pnpm install --frozen-lockfile
 COPY . .
-RUN pnpm -r build
+RUN pnpm --filter @monorepo/config build && \
+    pnpm --filter @monorepo/database build && \
+    pnpm --filter @monorepo/monitoring build && \
+    pnpm --filter @monorepo/shared build && \
+    pnpm --filter worker build
 
 
 FROM base as production

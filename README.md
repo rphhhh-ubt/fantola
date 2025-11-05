@@ -154,6 +154,311 @@ For detailed database documentation, see:
 - [Database Package](packages/database/README.md)
 - [Migration Workflow](docs/PRISMA_MIGRATION_WORKFLOW.md)
 
+## 🐳 Docker
+
+This project includes a complete Docker setup with multi-stage builds and docker-compose orchestration for both development and production environments.
+
+### Stack Components
+
+- **PostgreSQL 15** - Primary database with automatic initialization
+- **Redis 7** - Caching and queue management
+- **MinIO** - S3-compatible object storage (local Backblaze B2 stand-in)
+- **API Service** - REST API (Node.js)
+- **Bot Service** - Telegram bot (Node.js)
+- **Worker Service** - Background job processor (Node.js)
+
+### Quick Start with Docker
+
+#### Production Mode
+
+```bash
+# Build and start all services
+docker compose up -d
+
+# View logs
+docker compose logs -f
+
+# Check service status
+docker compose ps
+```
+
+#### Development Mode
+
+For development with hot-reload and volume mounting:
+
+```bash
+# Start with development overrides
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+
+# View logs for specific service
+docker compose logs -f api
+
+# Rebuild after dependency changes
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build
+```
+
+### Container Workflows
+
+#### Initial Setup
+
+1. **Clone and configure environment:**
+   ```bash
+   git clone <repository>
+   cd monorepo
+   cp .env.example .env
+   # Edit .env with your configuration
+   ```
+
+2. **Start infrastructure services:**
+   ```bash
+   # Start PostgreSQL, Redis, and MinIO
+   docker compose up -d postgres redis minio
+   
+   # Wait for services to be healthy
+   docker compose ps
+   ```
+
+3. **Run database migrations:**
+   ```bash
+   # Generate Prisma Client
+   docker compose exec api pnpm db:generate
+   
+   # Apply migrations
+   docker compose exec api pnpm db:migrate:deploy
+   
+   # Seed database with initial data
+   docker compose exec api pnpm db:seed
+   ```
+
+4. **Start application services:**
+   ```bash
+   docker compose up -d api bot worker
+   ```
+
+#### Building Images
+
+```bash
+# Build all services
+docker compose build
+
+# Build specific service
+docker compose build api
+
+# Build with no cache
+docker compose build --no-cache
+
+# Build for production
+docker compose -f docker-compose.yml -f docker-compose.prod.yml build
+```
+
+#### Running Migrations
+
+```bash
+# Run migrations in running container
+docker compose exec api pnpm db:migrate:deploy
+
+# Run migrations during startup (add to docker-compose.yml)
+# See services/api/entrypoint.sh for example
+
+# Create a new migration
+docker compose exec api pnpm db:migrate:dev --name your_migration_name
+
+# Reset database (destructive)
+docker compose exec api pnpm db:migrate:reset
+```
+
+#### Database Management
+
+```bash
+# Open Prisma Studio
+docker compose exec api pnpm db:studio
+# Access at http://localhost:5555
+
+# Backup database
+docker compose exec postgres pg_dump -U postgres monorepo > backup.sql
+
+# Restore database
+docker compose exec -T postgres psql -U postgres monorepo < backup.sql
+
+# Access PostgreSQL shell
+docker compose exec postgres psql -U postgres monorepo
+```
+
+#### MinIO (S3 Storage)
+
+MinIO provides local S3-compatible object storage for development:
+
+```bash
+# Access MinIO Console
+# http://localhost:9001
+# Default credentials: minioadmin / minioadmin
+
+# The bucket is automatically created on startup via minio-setup service
+# Configure S3 endpoint in .env:
+# S3_ENDPOINT=http://minio:9000
+# S3_BUCKET=monorepo
+# S3_ACCESS_KEY_ID=minioadmin
+# S3_SECRET_ACCESS_KEY=minioadmin123
+```
+
+#### Logs and Debugging
+
+```bash
+# View all logs
+docker compose logs -f
+
+# View specific service logs
+docker compose logs -f api
+docker compose logs -f bot
+docker compose logs -f worker
+
+# View last 100 lines
+docker compose logs --tail=100 api
+
+# Execute commands in running container
+docker compose exec api sh
+docker compose exec api pnpm typecheck
+docker compose exec api pnpm test
+```
+
+#### Stopping and Cleaning
+
+```bash
+# Stop all services
+docker compose down
+
+# Stop and remove volumes (destructive)
+docker compose down -v
+
+# Stop and remove images
+docker compose down --rmi all
+
+# Clean up everything
+docker compose down -v --rmi all --remove-orphans
+```
+
+### Docker Compose Files
+
+- **`docker-compose.yml`** - Base configuration with all services
+- **`docker-compose.dev.yml`** - Development overrides (hot-reload, volume mounting)
+- **`docker-compose.prod.yml`** - Production overrides (resource limits, scaling)
+- **`docker-compose.monitoring.yml`** - Monitoring stack (Prometheus, Grafana, Alertmanager)
+- **`docker-compose.nginx.yml`** - Nginx reverse proxy
+
+### Multi-Stage Dockerfiles
+
+Each service uses optimized multi-stage builds:
+
+1. **Base** - Install pnpm
+2. **Dependencies** - Install all dependencies
+3. **Build** - Build TypeScript to JavaScript
+4. **Production** - Minimal runtime image with only production dependencies
+
+Benefits:
+- Smaller final images
+- Faster builds with layer caching
+- Separate dev and prod dependencies
+
+### Environment Variables
+
+Docker services use environment variables from `.env` file:
+
+```bash
+# Copy example and customize
+cp .env.example .env
+
+# Key variables for Docker:
+NODE_ENV=production
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=postgres
+POSTGRES_DB=monorepo
+REDIS_URL=redis://redis:6379
+S3_ENDPOINT=http://minio:9000
+S3_BUCKET=monorepo
+```
+
+### Scaling Services
+
+```bash
+# Scale workers
+docker compose up -d --scale worker=3
+
+# Or set in .env
+WORKER_REPLICAS=3
+docker compose up -d
+
+# Scale API
+API_REPLICAS=2
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+```
+
+### Production Deployment
+
+```bash
+# Build for production
+docker compose -f docker-compose.yml -f docker-compose.prod.yml build
+
+# Start with production settings
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+
+# Enable monitoring
+docker compose -f docker-compose.yml -f docker-compose.monitoring.yml up -d
+```
+
+### Health Checks
+
+All services include health checks:
+
+- **PostgreSQL**: `pg_isready`
+- **Redis**: `redis-cli ping`
+- **MinIO**: HTTP endpoint check
+- **API**: HTTP `/health` endpoint
+- **Services**: Depend on healthy database and cache
+
+### Troubleshooting
+
+**Container won't start:**
+```bash
+# Check logs
+docker compose logs service-name
+
+# Check container status
+docker compose ps
+
+# Verify environment variables
+docker compose config
+```
+
+**Database connection issues:**
+```bash
+# Verify PostgreSQL is healthy
+docker compose ps postgres
+
+# Check connection from container
+docker compose exec api sh
+nc -zv postgres 5432
+```
+
+**Permission issues:**
+```bash
+# Fix storage permissions
+docker compose exec api chown -R node:node /var/www/storage
+```
+
+**Out of disk space:**
+```bash
+# Clean up Docker resources
+docker system prune -a --volumes
+```
+
+### Additional Docker Documentation
+
+For more detailed Docker information, see:
+
+- **[DOCKER.md](DOCKER.md)** - Comprehensive Docker setup guide with detailed instructions
+- **[DOCKER_QUICK_REFERENCE.md](DOCKER_QUICK_REFERENCE.md)** - Quick reference for common Docker commands
+- **[DOCKER_SETUP_SUMMARY.md](DOCKER_SETUP_SUMMARY.md)** - Implementation summary and architecture overview
+
 ## 🚢 Deployment
 
 This project supports multiple deployment platforms:

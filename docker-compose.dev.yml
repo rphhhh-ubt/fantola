@@ -1,0 +1,92 @@
+version: '3.8'
+
+# Development-specific overrides
+# Usage: docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+
+services:
+  postgres:
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: monorepo_dev
+
+  redis:
+    ports:
+      - "6379:6379"
+
+  minio:
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin123
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+      target: build
+    environment:
+      NODE_ENV: development
+      LOG_LEVEL: debug
+      S3_ENDPOINT: http://minio:9000
+      S3_ACCESS_KEY_ID: minioadmin
+      S3_SECRET_ACCESS_KEY: minioadmin123
+    volumes:
+      - ./packages:/app/packages
+      - ./services/api:/app/services/api
+      - storage_uploads:/var/www/storage/uploads
+      - storage_generated:/var/www/storage/generated
+      - storage_processed:/var/www/storage/processed
+      - /app/node_modules
+      - /app/packages/config/node_modules
+      - /app/packages/shared/node_modules
+      - /app/packages/database/node_modules
+      - /app/services/api/node_modules
+    command: ["pnpm", "api:dev"]
+
+  bot:
+    build:
+      context: .
+      dockerfile: Dockerfile.bot
+      target: build
+    environment:
+      NODE_ENV: development
+      LOG_LEVEL: debug
+    volumes:
+      - ./packages:/app/packages
+      - ./services/bot:/app/services/bot
+      - storage_uploads:/var/www/storage/uploads
+      - storage_generated:/var/www/storage/generated
+      - storage_processed:/var/www/storage/processed
+      - /app/node_modules
+      - /app/packages/config/node_modules
+      - /app/packages/shared/node_modules
+      - /app/packages/database/node_modules
+      - /app/services/bot/node_modules
+    command: ["pnpm", "bot:dev"]
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
+      target: build
+    environment:
+      NODE_ENV: development
+      LOG_LEVEL: debug
+      S3_ENDPOINT: http://minio:9000
+      S3_ACCESS_KEY_ID: minioadmin
+      S3_SECRET_ACCESS_KEY: minioadmin123
+    volumes:
+      - ./packages:/app/packages
+      - ./services/worker:/app/services/worker
+      - storage_uploads:/var/www/storage/uploads
+      - storage_generated:/var/www/storage/generated
+      - storage_processed:/var/www/storage/processed
+      - /app/node_modules
+      - /app/packages/config/node_modules
+      - /app/packages/shared/node_modules
+      - /app/packages/database/node_modules
+      - /app/services/worker/node_modules
+    command: ["pnpm", "worker:dev"]

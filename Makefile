@@ -1,5 +1,5 @@
 .PHONY: help install build dev clean lint typecheck test test-watch test-coverage test-ci test-docker
-.PHONY: docker-build docker-up docker-down docker-deploy docker-logs docker-up-nginx
+.PHONY: docker-build docker-up docker-dev docker-down docker-deploy docker-logs docker-up-nginx docker-ps docker-restart docker-clean
 .PHONY: fly-deploy railway-deploy
 .PHONY: db-migrate db-backup db-restore storage-backup storage-restore storage-clean storage-init
 .PHONY: setup-webhooks scale-workers
@@ -24,11 +24,15 @@ help:
     @echo ""
     @echo "Docker Commands:"
     @echo "  make docker-build     - Build Docker images"
-    @echo "  make docker-up        - Start services with Docker Compose"
+    @echo "  make docker-up        - Start services with Docker Compose (production)"
+    @echo "  make docker-dev       - Start services in development mode"
     @echo "  make docker-up-nginx  - Start services with Nginx CDN"
     @echo "  make docker-down      - Stop services with Docker Compose"
     @echo "  make docker-deploy    - Deploy with Docker Compose (production)"
     @echo "  make docker-logs      - View Docker logs"
+    @echo "  make docker-ps        - Show running containers"
+    @echo "  make docker-clean     - Stop and remove all containers and volumes"
+    @echo "  make docker-restart   - Restart all services"
     @echo ""
     @echo "Deployment:"
     @echo "  make fly-deploy       - Deploy to Fly.io"
@@ -90,14 +94,33 @@ docker-build:
     docker compose -f docker-compose.yml build
 
 docker-up:
-    @echo "🐳 Starting services with Docker Compose..."
+    @echo "🐳 Starting services with Docker Compose (production)..."
     docker compose -f docker-compose.yml up -d
     @echo "✅ Services started!"
+
+docker-dev:
+    @echo "🐳 Starting services in development mode..."
+    docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+    @echo "✅ Development services started!"
 
 docker-up-nginx:
     @echo "🐳 Starting services with Nginx CDN..."
     docker compose -f docker-compose.yml -f docker-compose.nginx.yml up -d
     @echo "✅ Services started with Nginx!"
+
+docker-ps:
+    @echo "📊 Running containers:"
+    docker compose ps
+
+docker-restart:
+    @echo "🔄 Restarting all services..."
+    docker compose restart
+    @echo "✅ Services restarted!"
+
+docker-clean:
+    @echo "🧹 Cleaning up Docker resources..."
+    docker compose down -v --rmi all --remove-orphans
+    @echo "✅ Cleanup complete!"
 
 docker-down:
     @echo "🐳 Stopping services..."

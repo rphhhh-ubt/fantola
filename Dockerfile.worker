@@ -8,6 +8,7 @@ FROM base AS dependencies
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY packages/config/package.json ./packages/config/
 COPY packages/shared/package.json ./packages/shared/
+COPY packages/database/package.json ./packages/database/
 COPY services/worker/package.json ./services/worker/
 RUN pnpm install --frozen-lockfile
 
@@ -16,6 +17,7 @@ FROM base AS build
 COPY --from=dependencies /app/node_modules ./node_modules
 COPY --from=dependencies /app/packages/config/node_modules ./packages/config/node_modules
 COPY --from=dependencies /app/packages/shared/node_modules ./packages/shared/node_modules
+COPY --from=dependencies /app/packages/database/node_modules ./packages/database/node_modules
 COPY --from=dependencies /app/services/worker/node_modules ./services/worker/node_modules
 COPY . .
 RUN pnpm build --filter worker
@@ -37,12 +39,15 @@ RUN mkdir -p /var/www/storage/uploads \
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY packages/config/package.json ./packages/config/
 COPY packages/shared/package.json ./packages/shared/
+COPY packages/database/package.json ./packages/database/
 COPY services/worker/package.json ./services/worker/
 
 RUN pnpm install --frozen-lockfile --prod
 
 COPY --from=build /app/packages/config/dist ./packages/config/dist
 COPY --from=build /app/packages/shared/dist ./packages/shared/dist
+COPY --from=build /app/packages/database/dist ./packages/database/dist
+COPY --from=build /app/packages/database/prisma ./packages/database/prisma
 COPY --from=build /app/services/worker/dist ./services/worker/dist
 
 USER node

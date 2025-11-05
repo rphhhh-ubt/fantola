@@ -1,7 +1,7 @@
 import { describe, expect, it, beforeAll, afterAll, beforeEach } from '@jest/globals';
 import { Job } from 'bullmq';
 import { Monitoring } from '@monorepo/monitoring';
-import { db, TokenService } from '@monorepo/shared';
+import { db, TokenService, GenerationType } from '@monorepo/shared';
 import { BaseProcessor, ProcessorContext, TokenDeductionConfig } from '../processors/base-processor';
 import { QueueName, JobResult } from '@monorepo/shared';
 
@@ -21,6 +21,10 @@ class TestProcessor extends BaseProcessor<any> {
       operationType: 'image_generation',
       skipDeductionOnFailure: true,
     };
+  }
+
+  protected getGenerationType(): GenerationType {
+    return GenerationType.CHAT;
   }
 
   protected async process(job: Job<any>): Promise<JobResult> {
@@ -278,6 +282,10 @@ describe('Token Deduction and Rollback', () => {
             enabled: false,
             operationType: 'image_generation',
           };
+        }
+
+        protected getGenerationType(): GenerationType {
+          return GenerationType.CHAT;
         }
 
         protected async process(job: Job<any>): Promise<JobResult> {

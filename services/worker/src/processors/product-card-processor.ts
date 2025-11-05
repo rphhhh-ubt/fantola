@@ -1,15 +1,14 @@
 import { Job } from 'bullmq';
 import { Monitoring } from '@monorepo/monitoring';
 import { db } from '@monorepo/database';
-import { BaseProcessor, TokenDeductionConfig } from './base-processor';
-import { ProductCardGenerationJobData, QueueName, JobResult } from '@monorepo/shared';
+import { BaseProcessor, TokenDeductionConfig, ProcessorContext } from './base-processor';
+import { ProductCardGenerationJobData, QueueName, JobResult, GenerationType } from '@monorepo/shared';
 import { StorageAdapter, StorageConfig } from '../storage';
 import { StorageFactory } from '../storage/storage-factory';
 import sharp from 'sharp';
 import axios from 'axios';
 
-export interface ProductCardProcessorConfig {
-  monitoring: Monitoring;
+export interface ProductCardProcessorConfig extends ProcessorContext {
   storageConfig: StorageConfig;
 }
 
@@ -31,6 +30,10 @@ export class ProductCardProcessor extends BaseProcessor<ProductCardGenerationJob
       operationType: 'product_card',
       skipDeductionOnFailure: true,
     };
+  }
+
+  protected getGenerationType(): GenerationType {
+    return GenerationType.PRODUCT_CARD;
   }
 
   async process(job: Job<ProductCardGenerationJobData>): Promise<JobResult> {

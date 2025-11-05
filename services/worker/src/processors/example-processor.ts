@@ -2,6 +2,7 @@ import type { Job } from 'bullmq';
 import type {
   JobResult,
   ImageProcessingJobData,
+  GenerationType,
 } from '@monorepo/shared';
 import { QueueName } from '@monorepo/shared';
 import { BaseProcessor, ProcessorContext } from './base-processor';
@@ -13,6 +14,11 @@ import { BaseProcessor, ProcessorContext } from './base-processor';
 export class ExampleProcessor extends BaseProcessor<ImageProcessingJobData> {
   constructor(context: ProcessorContext) {
     super(QueueName.IMAGE_PROCESSING, context);
+  }
+
+  protected getGenerationType(): GenerationType {
+    // Example processor uses CHAT type as default
+    return 'chat' as GenerationType;
   }
 
   /**

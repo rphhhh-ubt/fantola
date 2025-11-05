@@ -22,6 +22,9 @@ export * from './image-generation';
 // Export product card module
 export * from './product-card';
 
+// Export pub/sub module
+export * from './pubsub';
+
 // Export utility functions
 export interface User {
   id: string;

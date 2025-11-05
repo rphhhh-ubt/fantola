@@ -11,16 +11,19 @@ import databasePlugin from './plugins/database';
 import monitoringPlugin from './plugins/monitoring';
 import authPlugin from './plugins/auth';
 import yookassaPlugin from './plugins/yookassa';
+import websocketPlugin from './plugins/websocket';
 import routes from './routes';
 import { swaggerConfig, swaggerUiConfig } from './config/swagger';
+import Redis from 'ioredis';
 
 export interface AppOptions {
   config: ApiConfig;
   monitoring: Monitoring;
+  redis?: Redis;
 }
 
 export async function buildApp(options: AppOptions): Promise<FastifyInstance> {
-  const { config, monitoring } = options;
+  const { config, monitoring, redis } = options;
 
   const app = Fastify({
     logger: monitoring.logger as any,
@@ -63,6 +66,11 @@ export async function buildApp(options: AppOptions): Promise<FastifyInstance> {
     shopId: process.env.YOOKASSA_SHOP_ID,
     secretKey: process.env.YOOKASSA_SECRET_KEY,
   });
+
+  // Register WebSocket support if Redis is available
+  if (redis) {
+    await app.register(websocketPlugin, { redis });
+  }
 
   await app.register(routes, { prefix: '/api/v1' });
 

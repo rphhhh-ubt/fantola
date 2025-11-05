@@ -1,19 +1,19 @@
 import { Job } from 'bullmq';
 import { Monitoring } from '@monorepo/monitoring';
 import { db } from '@monorepo/database';
-import { BaseProcessor, TokenDeductionConfig } from './base-processor';
+import { BaseProcessor, TokenDeductionConfig, ProcessorContext } from './base-processor';
 import {
   ImageGenerationJobData,
   QueueName,
   JobResult,
   ImageGenerationService,
+  GenerationType,
 } from '@monorepo/shared';
 import { StorageAdapter, StorageConfig } from '../storage';
 import { StorageFactory } from '../storage/storage-factory';
 import axios from 'axios';
 
-export interface ImageGenerationProcessorConfig {
-  monitoring: Monitoring;
+export interface ImageGenerationProcessorConfig extends ProcessorContext {
   storageConfig: StorageConfig;
   imageGenerationService?: ImageGenerationService;
 }
@@ -38,6 +38,10 @@ export class ImageGenerationProcessor extends BaseProcessor<ImageGenerationJobDa
       operationType: 'image_generation',
       skipDeductionOnFailure: true,
     };
+  }
+
+  protected getGenerationType(): GenerationType {
+    return GenerationType.CHAT;
   }
 
   async process(job: Job<ImageGenerationJobData>): Promise<JobResult> {

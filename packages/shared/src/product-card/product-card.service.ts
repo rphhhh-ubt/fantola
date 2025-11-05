@@ -1,5 +1,5 @@
-import { db } from '@monorepo/database';
-import { ProductCardMode, ProductCardOptions, ProductCardModerationResult } from './types';
+import { db, ProductCardGeneration } from '@monorepo/database';
+import { ProductCardOptions, ProductCardModerationResult } from './types';
 import { ModerationService } from '../image-generation/providers/moderation-service';
 
 export interface CreateProductCardParams {
@@ -20,7 +20,7 @@ export class ProductCardService {
     this.moderationService = new ModerationService();
   }
 
-  async createGeneration(params: CreateProductCardParams) {
+  async createGeneration(params: CreateProductCardParams): Promise<ProductCardGeneration> {
     const generation = await db.productCardGeneration.create({
       data: {
         userId: params.userId,
@@ -80,7 +80,7 @@ export class ProductCardService {
     };
   }
 
-  async getGeneration(generationId: string) {
+  async getGeneration(generationId: string): Promise<ProductCardGeneration> {
     const generation = await db.productCardGeneration.findUnique({
       where: { id: generationId },
     });
@@ -95,7 +95,7 @@ export class ProductCardService {
   async updateGeneration(
     generationId: string,
     params: UpdateProductCardParams
-  ) {
+  ): Promise<ProductCardGeneration> {
     const generation = await db.productCardGeneration.update({
       where: { id: generationId },
       data: {
@@ -110,7 +110,7 @@ export class ProductCardService {
     return generation;
   }
 
-  async startProcessing(generationId: string) {
+  async startProcessing(generationId: string): Promise<ProductCardGeneration> {
     return await db.productCardGeneration.update({
       where: { id: generationId },
       data: {
@@ -120,7 +120,10 @@ export class ProductCardService {
     });
   }
 
-  async completeGeneration(generationId: string, resultUrls: string[]) {
+  async completeGeneration(
+    generationId: string,
+    resultUrls: string[]
+  ): Promise<ProductCardGeneration> {
     return await db.productCardGeneration.update({
       where: { id: generationId },
       data: {
@@ -131,7 +134,7 @@ export class ProductCardService {
     });
   }
 
-  async failGeneration(generationId: string, errorMessage: string) {
+  async failGeneration(generationId: string, errorMessage: string): Promise<ProductCardGeneration> {
     return await db.productCardGeneration.update({
       where: { id: generationId },
       data: {
@@ -141,7 +144,7 @@ export class ProductCardService {
     });
   }
 
-  async retryGeneration(generationId: string) {
+  async retryGeneration(generationId: string): Promise<ProductCardGeneration> {
     return await db.productCardGeneration.update({
       where: { id: generationId },
       data: {
@@ -154,7 +157,10 @@ export class ProductCardService {
     });
   }
 
-  async createVariant(parentGenerationId: string, options?: Partial<ProductCardOptions>) {
+  async createVariant(
+    parentGenerationId: string,
+    options?: Partial<ProductCardOptions>
+  ): Promise<ProductCardGeneration> {
     const parentGeneration = await this.getGeneration(parentGenerationId);
 
     const generation = await db.productCardGeneration.create({

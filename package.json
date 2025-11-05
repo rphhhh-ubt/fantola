@@ -5,7 +5,7 @@
   "packageManager": "pnpm@9.12.3",
   "description": "A pnpm-based TypeScript monorepo for services and shared packages",
   "scripts": {
-    "prepare": "husky",
+    "prepare": "if [ \"$HUSKY\" != \"0\" ]; then husky; fi",
     "build": "pnpm -r --stream build",
     "dev": "pnpm -r --parallel --stream dev",
     "lint": "pnpm -r --stream lint",

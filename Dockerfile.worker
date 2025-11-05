@@ -17,7 +17,6 @@ RUN pnpm --filter @monorepo/config build && \
     pnpm --filter @monorepo/shared build && \
     pnpm --filter worker build
 
-
 FROM base as production
 RUN apk add --no-cache dumb-init
 RUN addgroup -g 1001 -S nodejs && adduser -S nodejs -u 1001

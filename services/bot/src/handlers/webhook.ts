@@ -140,21 +140,30 @@ async function sendPaymentSuccessNotification(
   monitoring: Monitoring
 ): Promise<void> {
   try {
-    const expiryDate = expiresAt.toLocaleDateString('en-US', {
+    const expiryDate = expiresAt.toLocaleDateString('ru-RU', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
     });
 
+    // Use Russian messages by default
+    const messages = {
+      success: '✅ *Оплата успешна!*',
+      activated: `🎉 Ваша подписка *${tier}* активирована!`,
+      tokensAdded: `💎 *${tokensAwarded}* токенов добавлено на ваш баланс.`,
+      expiresOn: `📅 Истекает: *${expiryDate}*`,
+      startUsing: '👉 Начните использовать подписку с /start',
+    };
+
     const message = [
-      '✅ *Payment Successful!*',
+      messages.success,
       '',
-      `🎉 Your *${tier}* subscription has been activated!`,
+      messages.activated,
       '',
-      `💎 *${tokensAwarded}* tokens have been added to your balance.`,
-      `📅 Expires on: *${expiryDate}*`,
+      messages.tokensAdded,
+      messages.expiresOn,
       '',
-      '👉 Start using your subscription with /start',
+      messages.startUsing,
     ].join('\n');
 
     await bot.api.sendMessage(telegramId, message, {
@@ -183,11 +192,11 @@ async function sendPaymentCanceledNotification(
 ): Promise<void> {
   try {
     const message = [
-      '❌ *Payment Canceled*',
+      '❌ *Оплата отменена*',
       '',
-      'Your payment has been canceled.',
+      'Ваш платеж был отменен.',
       '',
-      '💡 You can try again anytime with /subscription',
+      '💡 Вы можете попробовать снова в любое время с /subscription',
     ].join('\n');
 
     await bot.api.sendMessage(telegramId, message, {
@@ -216,11 +225,11 @@ async function sendPaymentErrorNotification(
 ): Promise<void> {
   try {
     const message = [
-      '❌ *Payment Error*',
+      '❌ *Ошибка оплаты*',
       '',
-      'There was an error processing your payment.',
+      'Произошла ошибка при обработке вашего платежа.',
       '',
-      '💡 Please try again or contact support: /help',
+      '💡 Попробуйте снова или свяжитесь с поддержкой: /help',
     ].join('\n');
 
     await bot.api.sendMessage(telegramId, message, {

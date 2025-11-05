@@ -8,7 +8,7 @@ COPY packages/config/package.json ./packages/config/
 COPY packages/shared/package.json ./packages/shared/
 COPY packages/database/package.json ./packages/database/
 COPY packages/monitoring/package.json ./packages/monitoring/
-COPY services/bot/package.json ./services/bot/
+COPY services/api/package.json ./services/api/
 RUN pnpm install --frozen-lockfile
 COPY . .
 RUN pnpm -r build
@@ -21,15 +21,15 @@ COPY packages/config/package.json ./packages/config/
 COPY packages/shared/package.json ./packages/shared/
 COPY packages/database/package.json ./packages/database/
 COPY packages/monitoring/package.json ./packages/monitoring/
-COPY services/bot/package.json ./services/bot/
+COPY services/api/package.json ./services/api/
 RUN HUSKY=0 pnpm install --frozen-lockfile --prod
 COPY --from=build --chown=nodejs:nodejs /app/packages/config/dist ./packages/config/dist
 COPY --from=build --chown=nodejs:nodejs /app/packages/shared/dist ./packages/shared/dist
 COPY --from=build --chown=nodejs:nodejs /app/packages/database/dist ./packages/database/dist
 COPY --from=build --chown=nodejs:nodejs /app/packages/database/prisma ./packages/database/prisma
 COPY --from=build --chown=nodejs:nodejs /app/packages/monitoring/dist ./packages/monitoring/dist
-COPY --from=build --chown=nodejs:nodejs /app/services/bot/dist ./services/bot/dist
+COPY --from=build --chown=nodejs:nodejs /app/services/api/dist ./services/api/dist
 RUN pnpm --filter @monorepo/database prisma:generate
 USER nodejs
 EXPOSE 3000
-CMD ["dumb-init", "node", "services/bot/dist/index.js"]
+CMD ["dumb-init", "node", "services/api/dist/index.js"]

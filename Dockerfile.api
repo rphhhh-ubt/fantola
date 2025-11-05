@@ -20,7 +20,7 @@ COPY --from=dependencies /app/packages/shared/node_modules ./packages/shared/nod
 COPY --from=dependencies /app/packages/database/node_modules ./packages/database/node_modules
 COPY --from=dependencies /app/services/api/node_modules ./services/api/node_modules
 COPY . .
-RUN pnpm build --filter api
+RUN pnpm -F api build
 
 # Production stage
 FROM node:18-alpine AS production

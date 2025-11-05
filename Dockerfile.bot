@@ -22,6 +22,10 @@ COPY packages/database/package.json ./packages/database/
 COPY services/worker/package.json ./services/worker/
 RUN pnpm install --frozen-lockfile
 COPY . .
+RUN pnpm -F @monorepo/config build
+RUN pnpm -F @monorepo/database build
+RUN pnpm -F @monorepo/monitoring build
+RUN pnpm -F @monorepo/shared build
 RUN pnpm -F bot build
 
 # Production stage

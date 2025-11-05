@@ -1,3 +1,10 @@
+# Monorepo
+
+[![CI](https://github.com/rphhhh-ubt/fantola/actions/workflows/ci.yml/badge.svg)](https://github.com/rphhhh-ubt/fantola/actions/workflows/ci.yml)
+[![Build & Deploy](https://github.com/rphhhh-ubt/fantola/actions/workflows/build-deploy.yml/badge.svg)](https://github.com/rphhhh-ubt/fantola/actions/workflows/build-deploy.yml)
+
+A modern TypeScript monorepo powered by pnpm workspaces.
+
 ## 🏗️ Architecture
 
 This monorepo consists of multiple services and shared packages organized using pnpm workspaces:

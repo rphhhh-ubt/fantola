@@ -12,9 +12,10 @@ export async function handleCallbackQuery(
   paymentService: PaymentService
 ): Promise<void> {
   const data = ctx.callbackQuery.data;
+  const i18n = ctx.i18n;
 
   if (!data) {
-    await ctx.answerCallbackQuery('Invalid callback data');
+    await ctx.answerCallbackQuery(i18n.callback.invalidData);
     return;
   }
 
@@ -32,7 +33,7 @@ export async function handleCallbackQuery(
   }
 
   // Unknown callback
-  await ctx.answerCallbackQuery('Unknown action');
+  await ctx.answerCallbackQuery(i18n.callback.unknownAction);
 }
 
 /**
@@ -53,7 +54,7 @@ async function handleTierPurchase(
 
   // Cannot purchase Gift tier
   if (tier === SubscriptionTier.Gift) {
-    await ctx.answerCallbackQuery('Gift tier is free and cannot be purchased');
+    await ctx.answerCallbackQuery(i18n.callback.giftCannotBuy);
     return;
   }
 
@@ -61,7 +62,7 @@ async function handleTierPurchase(
   if (user.tier === tier) {
     const expiresAt = user.subscriptionExpiresAt;
     if (expiresAt && new Date(expiresAt) > new Date()) {
-      await ctx.answerCallbackQuery(`You already have an active ${tier} subscription`);
+      await ctx.answerCallbackQuery(i18n.t('callback.alreadySubscribed', { tier }));
       return;
     }
   }
@@ -74,33 +75,21 @@ async function handleTierPurchase(
     const telegramId = parseInt(user.telegramId);
     const payment = await paymentService.createPayment(user.id, tier, telegramId);
 
-    const tierNames = {
-      [SubscriptionTier.Professional]: i18n.language === 'ru' ? 'Professional' : 'Professional',
-      [SubscriptionTier.Business]: i18n.language === 'ru' ? 'Business' : 'Business',
-      [SubscriptionTier.Gift]: i18n.language === 'ru' ? 'Gift' : 'Gift',
-    };
-
     const tierDescriptions = {
-      [SubscriptionTier.Professional]: i18n.language === 'ru' 
-        ? '2000 токенов/месяц, приоритетная поддержка' 
-        : '2000 tokens/month, priority support',
-      [SubscriptionTier.Business]: i18n.language === 'ru'
-        ? '10000 токенов/месяц, премиум поддержка'
-        : '10000 tokens/month, premium support',
+      [SubscriptionTier.Professional]: i18n.callback.tierDescriptions.professional,
+      [SubscriptionTier.Business]: i18n.callback.tierDescriptions.business,
       [SubscriptionTier.Gift]: '',
     };
 
     const message = [
-      i18n.language === 'ru' ? '💳 *Оплата подписки*' : '💳 *Subscription Payment*',
+      i18n.callback.subscriptionPayment,
       '',
-      i18n.language === 'ru' ? `План: *${tierNames[tier]}*` : `Plan: *${tierNames[tier]}*`,
+      i18n.t('callback.plan', { tier }),
       tierDescriptions[tier],
       '',
-      i18n.language === 'ru' ? `💰 Стоимость: *${payment.amount}₽*` : `💰 Amount: *${payment.amount}₽*`,
+      i18n.t('callback.amount', { amount: payment.amount }),
       '',
-      i18n.language === 'ru' 
-        ? '👉 Нажмите кнопку ниже для оплаты:' 
-        : '👉 Click the button below to proceed with payment:',
+      i18n.callback.clickToPay,
     ].join('\n');
 
     // Send payment link with inline button
@@ -110,7 +99,7 @@ async function handleTierPurchase(
         inline_keyboard: [
           [
             {
-              text: i18n.language === 'ru' ? '💳 Оплатить' : '💳 Pay Now',
+              text: i18n.callback.payNow,
               url: payment.confirmationUrl,
             },
           ],
@@ -125,12 +114,7 @@ async function handleTierPurchase(
       { reply_markup: { inline_keyboard: [] } }
     );
   } catch (error) {
-    const i18n = ctx.i18n;
-    await ctx.reply(
-      i18n.language === 'ru'
-        ? '❌ Ошибка при создании платежа. Пожалуйста, попробуйте позже.'
-        : '❌ Failed to create payment. Please try again later.'
-    );
+    await ctx.reply(i18n.callback.paymentCreationFailed);
   }
 }
 
@@ -141,10 +125,11 @@ async function handleProductCardCallback(
   ctx: CallbackQueryContext<BotContext>,
   data: string
 ): Promise<void> {
+  const i18n = ctx.i18n;
   await ctx.answerCallbackQuery();
 
   if (!ctx.productCardHandler) {
-    await ctx.reply('Product card handler not available');
+    await ctx.reply(i18n.productCard.handlerNotAvailable);
     return;
   }
 

@@ -25,6 +25,9 @@ export * from './product-card';
 // Export pub/sub module
 export * from './pubsub';
 
+// Export localization
+export * from './localization/ru';
+
 // Export utility functions
 export interface User {
   id: string;

@@ -29,10 +29,7 @@ export class ProductCardHandler {
     }
 
     await ctx.reply(
-      '🎨 *Product Card Generator*\n\n' +
-      'Create professional product images with AI!\n\n' +
-      '📸 Please send me a photo of your product to get started.\n\n' +
-      '💰 Cost: *10 tokens* per generation',
+      i18n.productCard.start,
       { parse_mode: 'Markdown' }
     );
 
@@ -56,7 +53,7 @@ export class ProductCardHandler {
 
     const photo = ctx.message?.photo;
     if (!photo || photo.length === 0) {
-      await ctx.reply('No photo found in message');
+      await ctx.reply(i18n.productCard.noPhoto);
       return;
     }
 
@@ -82,14 +79,11 @@ export class ProductCardHandler {
     };
 
     const keyboard = new InlineKeyboard()
-      .text('✨ Clean', 'pc_mode_clean')
-      .text('📊 Infographics', 'pc_mode_infographics');
+      .text(i18n.productCard.buttons.clean, 'pc_mode_clean')
+      .text(i18n.productCard.buttons.infographics, 'pc_mode_infographics');
 
     await ctx.reply(
-      '✅ Photo received!\n\n' +
-      'Choose a card mode:\n' +
-      '• *Clean* - Minimal, professional look\n' +
-      '• *Infographics* - Data-rich, detailed view',
+      i18n.productCard.photoReceived,
       {
         parse_mode: 'Markdown',
         reply_markup: keyboard,
@@ -107,7 +101,7 @@ export class ProductCardHandler {
     }
 
     if (!ctx.session.productCardContext || !ctx.session.productCardContext.productImage) {
-      await ctx.reply('Please start over by sending a product photo.');
+      await ctx.reply(i18n.productCard.startOver);
       return;
     }
 
@@ -115,18 +109,15 @@ export class ProductCardHandler {
     ctx.session.productCardContext.step = 'awaiting_options';
 
     const keyboard = new InlineKeyboard()
-      .text('🎨 Add Background', 'pc_opt_background').row()
-      .text('📐 Set Pose', 'pc_opt_pose').row()
-      .text('✍️ Add Text', 'pc_opt_text').row()
-      .text('✅ Generate Now', 'pc_generate');
+      .text(i18n.productCard.buttons.addBackground, 'pc_opt_background').row()
+      .text(i18n.productCard.buttons.setPose, 'pc_opt_pose').row()
+      .text(i18n.productCard.buttons.addText, 'pc_opt_text').row()
+      .text(i18n.productCard.buttons.generateNow, 'pc_generate');
+
+    const modeText = mode === ProductCardMode.CLEAN ? i18n.productCard.clean : i18n.productCard.infographics;
 
     await ctx.editMessageText(
-      `✅ Mode selected: *${mode === ProductCardMode.CLEAN ? 'Clean' : 'Infographics'}*\n\n` +
-      'Optional: Customize your card\n' +
-      '• Add custom background\n' +
-      '• Set product pose/angle\n' +
-      '• Add text (headline, subheadline, description)\n\n' +
-      'Or generate with defaults!',
+      i18n.t('productCard.modeSelected', { mode: modeText }),
       {
         parse_mode: 'Markdown',
         reply_markup: keyboard,
@@ -146,13 +137,13 @@ export class ProductCardHandler {
     let promptMessage = '';
     switch (option) {
       case 'background':
-        promptMessage = '🎨 Describe the background you want (e.g., "white studio", "outdoor nature", "gradient blue")';
+        promptMessage = i18n.productCard.promptBackground;
         break;
       case 'pose':
-        promptMessage = '📐 Describe the product pose/angle (e.g., "front view", "45 degree angle", "floating")';
+        promptMessage = i18n.productCard.promptPose;
         break;
       case 'text':
-        promptMessage = '✍️ Enter text in format:\nHeadline | Subheadline | Description\n\nExample:\nNew Product | Best Quality | Description here';
+        promptMessage = i18n.productCard.promptText;
         break;
     }
 
@@ -161,6 +152,8 @@ export class ProductCardHandler {
   }
 
   async handleOptionInput(ctx: BotContext, input: string): Promise<void> {
+    const i18n = ctx.i18n;
+
     if (!ctx.session.productCardContext || ctx.session.productCardContext.step !== 'awaiting_input') {
       return;
     }
@@ -189,13 +182,13 @@ export class ProductCardHandler {
     ctx.session.productCardContext.step = 'awaiting_options';
 
     const keyboard = new InlineKeyboard()
-      .text('🎨 Add Background', 'pc_opt_background').row()
-      .text('📐 Set Pose', 'pc_opt_pose').row()
-      .text('✍️ Add Text', 'pc_opt_text').row()
-      .text('✅ Generate Now', 'pc_generate');
+      .text(i18n.productCard.buttons.addBackground, 'pc_opt_background').row()
+      .text(i18n.productCard.buttons.setPose, 'pc_opt_pose').row()
+      .text(i18n.productCard.buttons.addText, 'pc_opt_text').row()
+      .text(i18n.productCard.buttons.generateNow, 'pc_generate');
 
     await ctx.reply(
-      '✅ Option saved!\n\nContinue customizing or generate now.',
+      i18n.productCard.optionSaved,
       { reply_markup: keyboard }
     );
   }
@@ -210,7 +203,7 @@ export class ProductCardHandler {
     }
 
     if (!ctx.session.productCardContext || !ctx.session.productCardContext.productImage || !ctx.session.productCardContext.mode) {
-      await ctx.reply('Please start over by sending a product photo.');
+      await ctx.reply(i18n.productCard.startOver);
       return;
     }
 
@@ -226,7 +219,7 @@ export class ProductCardHandler {
       return;
     }
 
-    await ctx.editMessageText('⏳ Generating your product card...');
+    await ctx.editMessageText(i18n.productCard.generating);
 
     try {
       const response = await axios.post(
@@ -251,33 +244,32 @@ export class ProductCardHandler {
       };
 
       await ctx.reply(
-        '✅ *Generation Started!*\n\n' +
-        `Generation ID: \`${response.data.id}\`\n\n` +
-        'I\'ll notify you when it\'s ready. This usually takes 1-2 minutes.',
+        i18n.t('productCard.generationStarted', { id: response.data.id }),
         { parse_mode: 'Markdown' }
       );
     } catch (error) {
       if (axios.isAxiosError(error)) {
         const errorData = error.response?.data;
         if (errorData?.reason) {
-          await ctx.reply(`❌ Content moderation failed: ${errorData.reason}`);
+          await ctx.reply(i18n.t('productCard.moderationFailed', { reason: errorData.reason }));
         } else {
-          await ctx.reply(`❌ Error: ${errorData?.error || error.message}`);
+          await ctx.reply(`❌ ${i18n.common.error} ${errorData?.error || error.message}`);
         }
       } else {
-        await ctx.reply('❌ An error occurred. Please try again.');
+        await ctx.reply(i18n.common.error);
       }
     }
   }
 
   async handleGenerationComplete(ctx: BotContext, generationId: string, resultUrls: string[]): Promise<void> {
+    const i18n = ctx.i18n;
+
     const keyboard = new InlineKeyboard()
-      .text('🔄 Generate More', `pc_more_${generationId}`)
-      .text('✏️ Edit Card', `pc_edit_${generationId}`);
+      .text(i18n.productCard.buttons.generateMore, `pc_more_${generationId}`)
+      .text(i18n.productCard.buttons.editCard, `pc_edit_${generationId}`);
 
     await ctx.reply(
-      '✅ *Product Card Ready!*\n\n' +
-      'Your product card has been generated successfully!',
+      i18n.productCard.generationReady,
       { parse_mode: 'Markdown' }
     );
 
@@ -309,7 +301,7 @@ export class ProductCardHandler {
       return;
     }
 
-    await ctx.editMessageCaption('⏳ Generating more variants...');
+    await ctx.editMessageCaption(i18n.productCard.generatingMore);
 
     try {
       const response = await axios.post(
@@ -323,16 +315,14 @@ export class ProductCardHandler {
       );
 
       await ctx.reply(
-        '✅ *New Generation Started!*\n\n' +
-        `Generation ID: \`${response.data.id}\`\n\n` +
-        'I\'ll notify you when it\'s ready.',
+        i18n.t('productCard.newGenerationStarted', { id: response.data.id }),
         { parse_mode: 'Markdown' }
       );
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        await ctx.reply(`❌ Error: ${error.response?.data?.error || error.message}`);
+        await ctx.reply(`❌ ${i18n.common.error} ${error.response?.data?.error || error.message}`);
       } else {
-        await ctx.reply('❌ An error occurred. Please try again.');
+        await ctx.reply(i18n.common.error);
       }
     }
   }
@@ -352,14 +342,13 @@ export class ProductCardHandler {
     };
 
     const keyboard = new InlineKeyboard()
-      .text('🎨 Change Background', 'pc_edit_opt_background').row()
-      .text('📐 Change Pose', 'pc_edit_opt_pose').row()
-      .text('✍️ Change Text', 'pc_edit_opt_text').row()
-      .text('✅ Apply Changes', 'pc_edit_apply');
+      .text(i18n.productCard.buttons.changeBackground, 'pc_edit_opt_background').row()
+      .text(i18n.productCard.buttons.changePose, 'pc_edit_opt_pose').row()
+      .text(i18n.productCard.buttons.changeText, 'pc_edit_opt_text').row()
+      .text(i18n.productCard.buttons.applyChanges, 'pc_edit_apply');
 
     await ctx.editMessageCaption(
-      '✏️ *Edit Card*\n\n' +
-      'What would you like to change?',
+      i18n.productCard.editCard,
       {
         parse_mode: 'Markdown',
         reply_markup: keyboard,
@@ -377,7 +366,7 @@ export class ProductCardHandler {
     }
 
     if (!ctx.session.productCardContext || !ctx.session.productCardContext.generationId || !ctx.session.productCardContext.options) {
-      await ctx.reply('No changes to apply.');
+      await ctx.reply(i18n.productCard.noChanges);
       return;
     }
 
@@ -393,7 +382,7 @@ export class ProductCardHandler {
       return;
     }
 
-    await ctx.editMessageText('⏳ Applying changes...');
+    await ctx.editMessageText(i18n.productCard.applyingChanges);
 
     try {
       const response = await axios.post(
@@ -409,16 +398,14 @@ export class ProductCardHandler {
       );
 
       await ctx.reply(
-        '✅ *Edit Applied!*\n\n' +
-        `Generation ID: \`${response.data.id}\`\n\n` +
-        'I\'ll notify you when it\'s ready.',
+        i18n.t('productCard.editApplied', { id: response.data.id }),
         { parse_mode: 'Markdown' }
       );
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        await ctx.reply(`❌ Error: ${error.response?.data?.error || error.message}`);
+        await ctx.reply(`❌ ${i18n.common.error} ${error.response?.data?.error || error.message}`);
       } else {
-        await ctx.reply('❌ An error occurred. Please try again.');
+        await ctx.reply(i18n.common.error);
       }
     }
   }

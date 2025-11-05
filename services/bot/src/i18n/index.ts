@@ -11,8 +11,8 @@ const messages: Record<Language, Messages> = {
 /**
  * Get messages for a specific language
  */
-export function getMessages(language: Language = 'en'): Messages {
-  return messages[language] || messages.en;
+export function getMessages(language: Language = 'ru'): Messages {
+  return messages[language] || messages.ru;
 }
 
 /**
@@ -21,7 +21,7 @@ export function getMessages(language: Language = 'en'): Messages {
  */
 export function detectLanguage(telegramLanguageCode?: string): Language {
   if (!telegramLanguageCode) {
-    return 'en';
+    return 'ru';
   }
 
   // Extract base language code (e.g., 'en' from 'en-US')
@@ -32,8 +32,8 @@ export function detectLanguage(telegramLanguageCode?: string): Language {
     return 'ru';
   }
 
-  // Default to English
-  return 'en';
+  // Default to Russian
+  return 'ru';
 }
 
 /**
@@ -57,7 +57,7 @@ export class I18n {
   private messages: Messages;
   public language: Language;
 
-  constructor(language: Language = 'en') {
+  constructor(language: Language = 'ru') {
     this.language = language;
     this.messages = getMessages(language);
   }

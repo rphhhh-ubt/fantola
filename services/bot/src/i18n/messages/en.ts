@@ -178,6 +178,98 @@ export const en = {
       notSubscribed: '❌ Not subscribed',
     },
   },
+
+  // Product card messages
+  productCard: {
+    start: '🎨 *Product Card Generator*\n\n' +
+      'Create professional product images with AI!\n\n' +
+      '📸 Please send me a photo of your product to get started.\n\n' +
+      '💰 Cost: *10 tokens* per generation',
+    photoReceived: '✅ Photo received!\n\n' +
+      'Choose a card mode:\n' +
+      '• *Clean* - Minimal, professional look\n' +
+      '• *Infographics* - Data-rich, detailed view',
+    noPhoto: 'No photo found in message',
+    modeSelected: '✅ Mode selected: *{mode}*\n\n' +
+      'Optional: Customize your card\n' +
+      '• Add custom background\n' +
+      '• Set product pose/angle\n' +
+      '• Add text (headline, subheadline, description)\n\n' +
+      'Or generate with defaults!',
+    clean: 'Clean',
+    infographics: 'Infographics',
+    promptBackground: '🎨 Describe the background you want (e.g., "white studio", "outdoor nature", "gradient blue")',
+    promptPose: '📐 Describe the product pose/angle (e.g., "front view", "45 degree angle", "floating")',
+    promptText: '✍️ Enter text in format:\nHeadline | Subheadline | Description\n\nExample:\nNew Product | Best Quality | Description here',
+    optionSaved: '✅ Option saved!\n\nContinue customizing or generate now.',
+    startOver: 'Please start over by sending a product photo.',
+    generating: '⏳ Generating your product card...',
+    generationStarted: '✅ *Generation Started!*\n\n' +
+      'Generation ID: `{id}`\n\n' +
+      'I\'ll notify you when it\'s ready. This usually takes 1-2 minutes.',
+    generationReady: '✅ *Product Card Ready!*\n\n' +
+      'Your product card has been generated successfully!',
+    generatingMore: '⏳ Generating more variants...',
+    newGenerationStarted: '✅ *New Generation Started!*\n\n' +
+      'Generation ID: `{id}`\n\n' +
+      'I\'ll notify you when it\'s ready.',
+    editCard: '✏️ *Edit Card*\n\n' +
+      'What would you like to change?',
+    noChanges: 'No changes to apply.',
+    applyingChanges: '⏳ Applying changes...',
+    editApplied: '✅ *Edit Applied!*\n\n' +
+      'Generation ID: `{id}`\n\n' +
+      'I\'ll notify you when it\'s ready.',
+    moderationFailed: '❌ Content moderation failed: {reason}',
+    handlerNotAvailable: 'Product card handler not available',
+    buttons: {
+      clean: '✨ Clean',
+      infographics: '📊 Infographics',
+      addBackground: '🎨 Add Background',
+      setPose: '📐 Set Pose',
+      addText: '✍️ Add Text',
+      generateNow: '✅ Generate Now',
+      generateMore: '🔄 Generate More',
+      editCard: '✏️ Edit Card',
+      changeBackground: '🎨 Change Background',
+      changePose: '📐 Change Pose',
+      changeText: '✍️ Change Text',
+      applyChanges: '✅ Apply Changes',
+    },
+  },
+
+  // Callback messages
+  callback: {
+    invalidData: 'Invalid callback data',
+    unknownAction: 'Unknown action',
+    giftCannotBuy: 'Gift tier is free and cannot be purchased',
+    alreadySubscribed: 'You already have an active {tier} subscription',
+    subscriptionPayment: '💳 *Subscription Payment*',
+    plan: 'Plan: *{tier}*',
+    amount: '💰 Amount: *{amount}₽*',
+    clickToPay: '👉 Click the button below to proceed with payment:',
+    payNow: '💳 Pay Now',
+    paymentCreationFailed: '❌ Failed to create payment. Please try again later.',
+    tierDescriptions: {
+      professional: '2000 tokens/month, priority support',
+      business: '10000 tokens/month, premium support',
+    },
+  },
+
+  // Payment webhook messages
+  payment: {
+    success: '✅ *Payment Successful!*',
+    activated: '🎉 Your *{tier}* subscription has been activated!',
+    tokensAdded: '💎 *{tokens}* tokens have been added to your balance.',
+    expiresOn: '📅 Expires on: *{date}*',
+    startUsing: '👉 Start using your subscription with /start',
+    canceled: '❌ *Payment Canceled*',
+    canceledMessage: 'Your payment has been canceled.',
+    tryAgain: '💡 You can try again anytime with /subscription',
+    error: '❌ *Payment Error*',
+    errorMessage: 'There was an error processing your payment.',
+    contactSupport: '💡 Please try again or contact support: /help',
+  },
 };
 
 export type Messages = typeof en;

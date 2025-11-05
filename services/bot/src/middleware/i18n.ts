@@ -7,7 +7,7 @@ import { I18n, detectLanguage, Language } from '../i18n';
  */
 export async function i18nMiddleware(ctx: BotContext, next: () => Promise<void>): Promise<void> {
   // Get language from session or detect from Telegram
-  let language: Language = ctx.session.language || 'en';
+  let language: Language = ctx.session.language || 'ru';
 
   if (!ctx.session.language) {
     // Detect language from Telegram user's language_code

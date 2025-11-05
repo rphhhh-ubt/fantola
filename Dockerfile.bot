@@ -13,12 +13,14 @@ COPY services/bot/package.json ./services/bot/
 RUN pnpm install --frozen-lockfile
 
 # Build stage
-FROM base AS build
-COPY --from=dependencies /app/node_modules ./node_modules
-COPY --from=dependencies /app/packages/config/node_modules ./packages/config/node_modules
-COPY --from=dependencies /app/packages/shared/node_modules ./packages/shared/node_modules
-COPY --from=dependencies /app/packages/database/node_modules ./packages/database/node_modules
-COPY --from=dependencies /app/services/bot/node_modules ./services/bot/node_modules
+FROM base as build
+WORKDIR /app
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY packages/config/package.json ./packages/config/
+COPY packages/shared/package.json ./packages/shared/
+COPY packages/database/package.json ./packages/database/
+COPY services/worker/package.json ./services/worker/
+RUN pnpm install --frozen-lockfile
 COPY . .
 RUN pnpm -F bot build
 

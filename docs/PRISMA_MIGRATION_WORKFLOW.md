@@ -263,8 +263,8 @@ jobs:
         with:
           node-version: '18'
 
-      - name: Install pnpm
-        run: npm install -g pnpm@8
+      - name: Enable Corepack
+        run: corepack enable && corepack prepare pnpm@9.12.3 --activate
 
       - name: Install dependencies
         run: pnpm install

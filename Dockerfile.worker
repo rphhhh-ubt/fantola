@@ -1,6 +1,6 @@
 # Base stage
 FROM node:18-alpine AS base
-RUN npm install -g pnpm@8
+RUN corepack enable && corepack prepare pnpm@9.12.3 --activate
 WORKDIR /app
 
 # Dependencies stage
@@ -24,7 +24,7 @@ RUN pnpm build --filter worker
 
 # Production stage
 FROM node:18-alpine AS production
-RUN npm install -g pnpm@8
+RUN corepack enable && corepack prepare pnpm@9.12.3 --activate
 WORKDIR /app
 
 ENV NODE_ENV=production

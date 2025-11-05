@@ -12,7 +12,7 @@ COPY services/api/package.json ./services/api/
 COPY services/bot/package.json ./services/bot/
 COPY services/worker/package.json ./services/worker/
 
-RUN pnpm install --frozen-lockfile
+RUN HUSKY=0 pnpm install --frozen-lockfile --prod
 
 COPY . .
 

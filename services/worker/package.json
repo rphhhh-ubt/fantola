@@ -20,11 +20,13 @@
     "@monorepo/database": "workspace:*",
     "@monorepo/monitoring": "workspace:*",
     "@monorepo/shared": "workspace:*",
+    "axios": "^1.13.2",
     "bullmq": "^5.32.2",
     "ioredis": "^5.8.2",
     "sharp": "^0.34.4"
   },
   "devDependencies": {
+    "@jest/globals": "^30.2.0",
     "@monorepo/test-utils": "workspace:*",
     "@types/jest": "^30.0.0",
     "@types/node": "^20.10.0",

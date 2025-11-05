@@ -16,6 +16,6 @@ RUN HUSKY=0 pnpm install --frozen-lockfile --prod
 
 COPY . .
 
-RUN pnpm build
+RUN pnpm -F build
 
 CMD ["pnpm", "test:ci"]

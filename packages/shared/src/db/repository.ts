@@ -35,20 +35,16 @@ export class RepositoryHelpers {
     callback: (tx: PrismaClient) => Promise<T>,
     options: TransactionOptions = {}
   ): Promise<T> {
-    try {
-      return await this.client.$transaction(
-        async (tx) => {
-          return await callback(tx as PrismaClient);
-        },
-        {
-          maxWait: options.maxWait || 5000,
-          timeout: options.timeout || 10000,
-          isolationLevel: options.isolationLevel,
-        }
-      );
-    } catch (error) {
-      throw error;
-    }
+    return await this.client.$transaction(
+      async (tx) => {
+        return await callback(tx as PrismaClient);
+      },
+      {
+        maxWait: options.maxWait || 5000,
+        timeout: options.timeout || 10000,
+        isolationLevel: options.isolationLevel,
+      }
+    );
   }
 
   /**
@@ -115,11 +111,7 @@ export class RepositoryHelpers {
   /**
    * Soft validation: Find record by unique field without throwing
    */
-  async findUnique<T>(
-    model: string,
-    where: unknown,
-    include?: unknown
-  ): Promise<T | null> {
+  async findUnique<T>(model: string, where: unknown, include?: unknown): Promise<T | null> {
     // @ts-expect-error - Dynamic model access
     const modelClient = this.client[model];
 
@@ -133,11 +125,7 @@ export class RepositoryHelpers {
   /**
    * Soft validation: Find first record matching criteria without throwing
    */
-  async findFirst<T>(
-    model: string,
-    where: unknown,
-    include?: unknown
-  ): Promise<T | null> {
+  async findFirst<T>(model: string, where: unknown, include?: unknown): Promise<T | null> {
     // @ts-expect-error - Dynamic model access
     const modelClient = this.client[model];
 
@@ -151,11 +139,7 @@ export class RepositoryHelpers {
   /**
    * Batch create records with automatic chunking
    */
-  async batchCreate<T>(
-    model: string,
-    data: unknown[],
-    chunkSize = 100
-  ): Promise<T[]> {
+  async batchCreate<T>(model: string, data: unknown[], chunkSize = 100): Promise<T[]> {
     // @ts-expect-error - Dynamic model access
     const modelClient = this.client[model];
 
@@ -180,12 +164,7 @@ export class RepositoryHelpers {
   /**
    * Upsert: Create or update based on unique constraint
    */
-  async upsert<T>(
-    model: string,
-    where: unknown,
-    create: unknown,
-    update: unknown
-  ): Promise<T> {
+  async upsert<T>(model: string, where: unknown, create: unknown, update: unknown): Promise<T> {
     // @ts-expect-error - Dynamic model access
     const modelClient = this.client[model];
 
@@ -203,11 +182,7 @@ export class RepositoryHelpers {
   /**
    * Soft delete: Mark record as deleted without physical removal
    */
-  async softDelete(
-    model: string,
-    where: unknown,
-    deletedAtField = 'deletedAt'
-  ): Promise<void> {
+  async softDelete(model: string, where: unknown, deletedAtField = 'deletedAt'): Promise<void> {
     // @ts-expect-error - Dynamic model access
     const modelClient = this.client[model];
 

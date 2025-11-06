@@ -1,6 +1,7 @@
 import { PrismaClient, SubscriptionTier } from '@monorepo/database';
 import { SubscriptionService } from '../subscription-service';
-import type { SubscriptionStatus } from '../types';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import type { SubscriptionStatus } from './types';
 
 jest.mock('@monorepo/database', () => {
   const mockPrismaClient = {
@@ -162,10 +163,12 @@ describe('SubscriptionService', () => {
       });
 
       expect(result.success).toBe(true);
-      expect(onActivation).toHaveBeenCalledWith(expect.objectContaining({
-        userId: 'user-123',
-        tier: SubscriptionTier.Professional,
-      }));
+      expect(onActivation).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userId: 'user-123',
+          tier: SubscriptionTier.Professional,
+        })
+      );
     });
 
     it('should handle errors gracefully', async () => {

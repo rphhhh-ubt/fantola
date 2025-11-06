@@ -1,7 +1,12 @@
 import type { PrismaClient } from '@monorepo/database';
 import { GenerationStatus, GenerationTool } from '@monorepo/database';
 import { QueueProducer } from './producer';
-import { ProductCardGenerationJobData, SoraGenerationJobData, ChatProcessingJobData, ExtendedJobOptions } from './types';
+import {
+  ProductCardGenerationJobData,
+  SoraGenerationJobData,
+  ChatProcessingJobData,
+  ExtendedJobOptions,
+} from './types';
 import { getTierPriority } from './config';
 import { emitQueuedEvent, GenerationType } from './events';
 
@@ -71,7 +76,7 @@ export interface CreateJobResult {
 export async function createProductCardJob(
   db: PrismaClient,
   queueProducer: QueueProducer<ProductCardGenerationJobData>,
-  options: CreateProductCardJobOptions,
+  options: CreateProductCardJobOptions
 ): Promise<CreateJobResult> {
   const {
     userId,
@@ -134,7 +139,7 @@ export async function createProductCardJob(
       timestamp: Date.now(),
       metadata,
     },
-    jobOptions,
+    jobOptions
   );
 
   // Emit WebSocket event
@@ -166,16 +171,9 @@ export async function createProductCardJob(
 export async function createSoraJob(
   db: PrismaClient,
   queueProducer: QueueProducer<SoraGenerationJobData>,
-  options: CreateSoraJobOptions,
+  options: CreateSoraJobOptions
 ): Promise<CreateJobResult> {
-  const {
-    userId,
-    userTier,
-    prompt,
-    imageUrls,
-    tokensUsed = 10,
-    metadata,
-  } = options;
+  const { userId, userTier, prompt, imageUrls, tokensUsed = 10, metadata } = options;
 
   // Create database record
   const generation = await db.soraGeneration.create({
@@ -207,7 +205,7 @@ export async function createSoraJob(
       timestamp: Date.now(),
       metadata,
     },
-    jobOptions,
+    jobOptions
   );
 
   // Emit WebSocket event
@@ -240,7 +238,7 @@ export async function createSoraJob(
 export async function createChatJob(
   db: PrismaClient,
   queueProducer: QueueProducer<ChatProcessingJobData>,
-  options: CreateChatJobOptions,
+  options: CreateChatJobOptions
 ): Promise<CreateJobResult> {
   const {
     userId,
@@ -299,7 +297,7 @@ export async function createChatJob(
       },
       metadata,
     },
-    jobOptions,
+    jobOptions
   );
 
   // Emit WebSocket event
@@ -336,7 +334,7 @@ export async function updateGenerationStatus(
     errorMessage?: string;
     tokensUsed?: number;
     [key: string]: unknown;
-  },
+  }
 ): Promise<void> {
   const updateData: any = {
     status,
@@ -376,8 +374,9 @@ export async function updateGenerationStatus(
   }
 
   // Emit appropriate event
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
   const { emitProcessingEvent, emitCompletedEvent, emitFailedEvent } = require('./events');
-  
+
   const eventPayload = {
     generationId,
     userId,

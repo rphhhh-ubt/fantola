@@ -28,6 +28,7 @@ jest.mock('bullmq', () => {
   };
 });
 
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const { Worker } = require('bullmq');
 
 describe('QueueConsumer', () => {
@@ -52,7 +53,7 @@ describe('QueueConsumer', () => {
     consumer = new QueueConsumer<ImageProcessingJobData>(
       QueueName.IMAGE_PROCESSING,
       mockProcessor,
-      mockRedis,
+      mockRedis
     );
   });
 
@@ -127,14 +128,14 @@ describe('QueueConsumer', () => {
         expect.objectContaining({
           jobId: 'test-job-1',
           event: JobEvent.ACTIVE,
-        }),
+        })
       );
 
       expect(completedCallback).toHaveBeenCalledWith(
         expect.objectContaining({
           jobId: 'test-job-1',
           event: JobEvent.COMPLETED,
-        }),
+        })
       );
     });
 
@@ -166,7 +167,7 @@ describe('QueueConsumer', () => {
           jobId: 'test-job-1',
           event: JobEvent.FAILED,
           error,
-        }),
+        })
       );
     });
   });
@@ -195,7 +196,7 @@ describe('QueueConsumer', () => {
           jobId: 'test-job-1',
           event: JobEvent.PROGRESS,
           data: 50,
-        }),
+        })
       );
     });
 
@@ -293,12 +294,7 @@ describe('QueueConsumer', () => {
         lockDuration: 60000,
       };
 
-      const newConsumer = createConsumer(
-        QueueName.IMAGE_PROCESSING,
-        processor,
-        mockRedis,
-        options,
-      );
+      const newConsumer = createConsumer(QueueName.IMAGE_PROCESSING, processor, mockRedis, options);
 
       expect(newConsumer).toBeInstanceOf(QueueConsumer);
       expect(Worker).toHaveBeenCalledWith(
@@ -307,7 +303,7 @@ describe('QueueConsumer', () => {
         expect.objectContaining({
           concurrency: 10,
           lockDuration: expect.any(Number), // Will be overridden by timeout
-        }),
+        })
       );
     });
   });

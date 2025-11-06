@@ -15,7 +15,7 @@ jest.mock('bullmq', () => {
       jobs.map((job: any, index: number) => ({
         id: `mock-job-id-${index}`,
         ...job,
-      })),
+      }))
     ),
     getJob: jest.fn().mockResolvedValue(null),
     getJobCounts: jest.fn().mockResolvedValue({
@@ -41,6 +41,7 @@ jest.mock('bullmq', () => {
   };
 });
 
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const { Queue } = require('bullmq');
 
 describe('QueueProducer', () => {
@@ -56,10 +57,7 @@ describe('QueueProducer', () => {
       quit: jest.fn().mockResolvedValue('OK'),
     };
 
-    producer = new QueueProducer<ImageGenerationJobData>(
-      QueueName.IMAGE_GENERATION,
-      mockRedis,
-    );
+    producer = new QueueProducer<ImageGenerationJobData>(QueueName.IMAGE_GENERATION, mockRedis);
   });
 
   afterEach(() => {
@@ -98,7 +96,7 @@ describe('QueueProducer', () => {
         expect.objectContaining({
           attempts: expect.any(Number),
           backoff: expect.any(Object),
-        }),
+        })
       );
     });
 
@@ -120,7 +118,7 @@ describe('QueueProducer', () => {
           jobId: 'mock-job-id',
           queueName: QueueName.IMAGE_GENERATION,
           event: JobEvent.ADDED,
-        }),
+        })
       );
     });
 
@@ -180,7 +178,7 @@ describe('QueueProducer', () => {
             name: 'job-2',
             data: jobs[1].data,
           }),
-        ]),
+        ])
       );
     });
 

@@ -28,10 +28,7 @@ export class ProductCardHandler {
       return;
     }
 
-    await ctx.reply(
-      i18n.productCard.start,
-      { parse_mode: 'Markdown' }
-    );
+    await ctx.reply(i18n.productCard.start, { parse_mode: 'Markdown' });
 
     ctx.session.productCardContext = {
       step: 'awaiting_photo',
@@ -47,7 +44,10 @@ export class ProductCardHandler {
       return;
     }
 
-    if (!ctx.session.productCardContext || ctx.session.productCardContext.step !== 'awaiting_photo') {
+    if (
+      !ctx.session.productCardContext ||
+      ctx.session.productCardContext.step !== 'awaiting_photo'
+    ) {
       return;
     }
 
@@ -82,13 +82,10 @@ export class ProductCardHandler {
       .text(i18n.productCard.buttons.clean, 'pc_mode_clean')
       .text(i18n.productCard.buttons.infographics, 'pc_mode_infographics');
 
-    await ctx.reply(
-      i18n.productCard.photoReceived,
-      {
-        parse_mode: 'Markdown',
-        reply_markup: keyboard,
-      }
-    );
+    await ctx.reply(i18n.productCard.photoReceived, {
+      parse_mode: 'Markdown',
+      reply_markup: keyboard,
+    });
   }
 
   async handleModeSelection(ctx: BotContext, mode: ProductCardMode): Promise<void> {
@@ -109,26 +106,30 @@ export class ProductCardHandler {
     ctx.session.productCardContext.step = 'awaiting_options';
 
     const keyboard = new InlineKeyboard()
-      .text(i18n.productCard.buttons.addBackground, 'pc_opt_background').row()
-      .text(i18n.productCard.buttons.setPose, 'pc_opt_pose').row()
-      .text(i18n.productCard.buttons.addText, 'pc_opt_text').row()
+      .text(i18n.productCard.buttons.addBackground, 'pc_opt_background')
+      .row()
+      .text(i18n.productCard.buttons.setPose, 'pc_opt_pose')
+      .row()
+      .text(i18n.productCard.buttons.addText, 'pc_opt_text')
+      .row()
       .text(i18n.productCard.buttons.generateNow, 'pc_generate');
 
-    const modeText = mode === ProductCardMode.CLEAN ? i18n.productCard.clean : i18n.productCard.infographics;
+    const modeText =
+      mode === ProductCardMode.CLEAN ? i18n.productCard.clean : i18n.productCard.infographics;
 
-    await ctx.editMessageText(
-      i18n.t('productCard.modeSelected', { mode: modeText }),
-      {
-        parse_mode: 'Markdown',
-        reply_markup: keyboard,
-      }
-    );
+    await ctx.editMessageText(i18n.t('productCard.modeSelected', { mode: modeText }), {
+      parse_mode: 'Markdown',
+      reply_markup: keyboard,
+    });
   }
 
   async handleOptions(ctx: BotContext, option: string): Promise<void> {
     const i18n = ctx.i18n;
 
-    if (!ctx.session.productCardContext || ctx.session.productCardContext.step !== 'awaiting_options') {
+    if (
+      !ctx.session.productCardContext ||
+      ctx.session.productCardContext.step !== 'awaiting_options'
+    ) {
       return;
     }
 
@@ -154,7 +155,10 @@ export class ProductCardHandler {
   async handleOptionInput(ctx: BotContext, input: string): Promise<void> {
     const i18n = ctx.i18n;
 
-    if (!ctx.session.productCardContext || ctx.session.productCardContext.step !== 'awaiting_input') {
+    if (
+      !ctx.session.productCardContext ||
+      ctx.session.productCardContext.step !== 'awaiting_input'
+    ) {
       return;
     }
 
@@ -171,26 +175,27 @@ export class ProductCardHandler {
       case 'pose':
         ctx.session.productCardContext.options.pose = input;
         break;
-      case 'text':
-        const parts = input.split('|').map(p => p.trim());
+      case 'text': {
+        const parts = input.split('|').map((p) => p.trim());
         if (parts.length >= 1) ctx.session.productCardContext.options.textHeadline = parts[0];
         if (parts.length >= 2) ctx.session.productCardContext.options.textSubheadline = parts[1];
         if (parts.length >= 3) ctx.session.productCardContext.options.textDescription = parts[2];
         break;
+      }
     }
 
     ctx.session.productCardContext.step = 'awaiting_options';
 
     const keyboard = new InlineKeyboard()
-      .text(i18n.productCard.buttons.addBackground, 'pc_opt_background').row()
-      .text(i18n.productCard.buttons.setPose, 'pc_opt_pose').row()
-      .text(i18n.productCard.buttons.addText, 'pc_opt_text').row()
+      .text(i18n.productCard.buttons.addBackground, 'pc_opt_background')
+      .row()
+      .text(i18n.productCard.buttons.setPose, 'pc_opt_pose')
+      .row()
+      .text(i18n.productCard.buttons.addText, 'pc_opt_text')
+      .row()
       .text(i18n.productCard.buttons.generateNow, 'pc_generate');
 
-    await ctx.reply(
-      i18n.productCard.optionSaved,
-      { reply_markup: keyboard }
-    );
+    await ctx.reply(i18n.productCard.optionSaved, { reply_markup: keyboard });
   }
 
   async handleGenerate(ctx: BotContext): Promise<void> {
@@ -202,7 +207,11 @@ export class ProductCardHandler {
       return;
     }
 
-    if (!ctx.session.productCardContext || !ctx.session.productCardContext.productImage || !ctx.session.productCardContext.mode) {
+    if (
+      !ctx.session.productCardContext ||
+      !ctx.session.productCardContext.productImage ||
+      !ctx.session.productCardContext.mode
+    ) {
       await ctx.reply(i18n.productCard.startOver);
       return;
     }
@@ -243,10 +252,9 @@ export class ProductCardHandler {
         generationId: response.data.id,
       };
 
-      await ctx.reply(
-        i18n.t('productCard.generationStarted', { id: response.data.id }),
-        { parse_mode: 'Markdown' }
-      );
+      await ctx.reply(i18n.t('productCard.generationStarted', { id: response.data.id }), {
+        parse_mode: 'Markdown',
+      });
     } catch (error) {
       if (axios.isAxiosError(error)) {
         const errorData = error.response?.data;
@@ -261,17 +269,18 @@ export class ProductCardHandler {
     }
   }
 
-  async handleGenerationComplete(ctx: BotContext, generationId: string, resultUrls: string[]): Promise<void> {
+  async handleGenerationComplete(
+    ctx: BotContext,
+    generationId: string,
+    resultUrls: string[]
+  ): Promise<void> {
     const i18n = ctx.i18n;
 
     const keyboard = new InlineKeyboard()
       .text(i18n.productCard.buttons.generateMore, `pc_more_${generationId}`)
       .text(i18n.productCard.buttons.editCard, `pc_edit_${generationId}`);
 
-    await ctx.reply(
-      i18n.productCard.generationReady,
-      { parse_mode: 'Markdown' }
-    );
+    await ctx.reply(i18n.productCard.generationReady, { parse_mode: 'Markdown' });
 
     for (const url of resultUrls) {
       await ctx.replyWithPhoto(url, {
@@ -301,7 +310,15 @@ export class ProductCardHandler {
       return;
     }
 
-    await ctx.editMessageCaption(i18n.productCard.generatingMore);
+    const callbackMessage = ctx.callbackQuery?.message;
+    if (callbackMessage) {
+      await ctx.api.editMessageCaption({
+        chat_id: callbackMessage.chat.id,
+        message_id: callbackMessage.message_id,
+        caption: i18n.productCard.generatingMore,
+        parse_mode: 'HTML',
+      });
+    }
 
     try {
       const response = await axios.post(
@@ -314,10 +331,9 @@ export class ProductCardHandler {
         }
       );
 
-      await ctx.reply(
-        i18n.t('productCard.newGenerationStarted', { id: response.data.id }),
-        { parse_mode: 'Markdown' }
-      );
+      await ctx.reply(i18n.t('productCard.newGenerationStarted', { id: response.data.id }), {
+        parse_mode: 'Markdown',
+      });
     } catch (error) {
       if (axios.isAxiosError(error)) {
         await ctx.reply(`❌ ${i18n.common.error} ${error.response?.data?.error || error.message}`);
@@ -342,18 +358,28 @@ export class ProductCardHandler {
     };
 
     const keyboard = new InlineKeyboard()
-      .text(i18n.productCard.buttons.changeBackground, 'pc_edit_opt_background').row()
-      .text(i18n.productCard.buttons.changePose, 'pc_edit_opt_pose').row()
-      .text(i18n.productCard.buttons.changeText, 'pc_edit_opt_text').row()
+      .text(i18n.productCard.buttons.changeBackground, 'pc_edit_opt_background')
+      .row()
+      .text(i18n.productCard.buttons.changePose, 'pc_edit_opt_pose')
+      .row()
+      .text(i18n.productCard.buttons.changeText, 'pc_edit_opt_text')
+      .row()
       .text(i18n.productCard.buttons.applyChanges, 'pc_edit_apply');
 
-    await ctx.editMessageCaption(
-      i18n.productCard.editCard,
-      {
-        parse_mode: 'Markdown',
-        reply_markup: keyboard,
-      }
-    );
+    const callbackMessage = ctx.callbackQuery?.message;
+    if (!callbackMessage) {
+      return;
+    }
+
+    const editCaptionHtml = i18n.productCard.editCard.replace(/\*(.*?)\*/g, '<b>$1</b>');
+
+    await ctx.api.editMessageCaption({
+      chat_id: callbackMessage.chat.id,
+      message_id: callbackMessage.message_id,
+      caption: editCaptionHtml,
+      parse_mode: 'HTML',
+      reply_markup: keyboard,
+    });
   }
 
   async handleEditApply(ctx: BotContext): Promise<void> {
@@ -365,7 +391,11 @@ export class ProductCardHandler {
       return;
     }
 
-    if (!ctx.session.productCardContext || !ctx.session.productCardContext.generationId || !ctx.session.productCardContext.options) {
+    if (
+      !ctx.session.productCardContext ||
+      !ctx.session.productCardContext.generationId ||
+      !ctx.session.productCardContext.options
+    ) {
       await ctx.reply(i18n.productCard.noChanges);
       return;
     }
@@ -397,10 +427,9 @@ export class ProductCardHandler {
         }
       );
 
-      await ctx.reply(
-        i18n.t('productCard.editApplied', { id: response.data.id }),
-        { parse_mode: 'Markdown' }
-      );
+      await ctx.reply(i18n.t('productCard.editApplied', { id: response.data.id }), {
+        parse_mode: 'Markdown',
+      });
     } catch (error) {
       if (axios.isAxiosError(error)) {
         await ctx.reply(`❌ ${i18n.common.error} ${error.response?.data?.error || error.message}`);

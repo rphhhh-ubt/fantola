@@ -1,4 +1,5 @@
 import { CallbackQueryContext } from 'grammy';
+import { InlineKeyboardMarkup } from 'grammy/types';
 import { BotContext } from '../types';
 import { PaymentService } from '../services/payment-service';
 import { SubscriptionTier } from '@monorepo/database';
@@ -108,11 +109,8 @@ async function handleTierPurchase(
     });
 
     // Edit original message to show processing started
-    await ctx.api.editMessageReplyMarkup(
-      ctx.chat!.id,
-      ctx.callbackQuery.message!.message_id,
-      { reply_markup: { inline_keyboard: [] } }
-    );
+    const emptyMarkup: InlineKeyboardMarkup = { inline_keyboard: [] };
+    await ctx.editMessageReplyMarkup({ reply_markup: emptyMarkup });
   } catch (error) {
     await ctx.reply(i18n.callback.paymentCreationFailed);
   }

@@ -14,7 +14,7 @@ export async function handleTextMessage(ctx: BotContext): Promise<void> {
   }
 
   // Check if we're in product card input workflow
-  if (ctx.session.productCardContext?.step === 'awaiting_input' && ctx.productCardHandler) {
+  if (ctx.session?.productCardContext?.step === 'awaiting_input' && ctx.productCardHandler) {
     await ctx.productCardHandler.handleOptionInput(ctx, text);
     return;
   }

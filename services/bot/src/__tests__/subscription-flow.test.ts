@@ -55,7 +55,7 @@ describe('Subscription Flow', () => {
 
       const replyCall = (mockCtx.reply as jest.Mock).mock.calls[0];
       const message = replyCall[0];
-      
+
       expect(message).toContain('Gift');
       expect(message).toContain('Professional');
       expect(message).toContain('Business');
@@ -94,9 +94,9 @@ describe('Subscription Flow', () => {
       const keyboard = options.reply_markup.inline_keyboard;
 
       // Should only show Business tier button (not Professional)
-      const professionalButton = keyboard.flat().find(
-        (btn: any) => btn.callback_data === 'buy_tier:Professional'
-      );
+      const professionalButton = keyboard
+        .flat()
+        .find((btn: any) => btn.callback_data === 'buy_tier:Professional');
       expect(professionalButton).toBeUndefined();
     });
 
@@ -105,15 +105,13 @@ describe('Subscription Flow', () => {
 
       await handleSubscription(mockCtx as any);
 
-      expect(mockCtx.reply).toHaveBeenCalledWith(
-        expect.stringContaining('profile')
-      );
+      expect(mockCtx.reply).toHaveBeenCalledWith(expect.stringContaining('profile'));
     });
   });
 
   describe('handleCallbackQuery - Tier Purchase', () => {
     it('should create payment for Professional tier', async () => {
-      mockCtx.callbackQuery = { data: 'buy_tier:Professional' } as any;
+      (mockCtx as any).callbackQuery = { data: 'buy_tier:Professional' } as any;
 
       (paymentService.createPayment as jest.Mock).mockResolvedValueOnce({
         paymentId: 'payment-123',
@@ -148,7 +146,7 @@ describe('Subscription Flow', () => {
     });
 
     it('should create payment for Business tier', async () => {
-      mockCtx.callbackQuery = { data: 'buy_tier:Business' } as any;
+      (mockCtx as any).callbackQuery = { data: 'buy_tier:Business' } as any;
 
       (paymentService.createPayment as jest.Mock).mockResolvedValueOnce({
         paymentId: 'payment-456',
@@ -167,7 +165,7 @@ describe('Subscription Flow', () => {
     });
 
     it('should reject purchase for Gift tier', async () => {
-      mockCtx.callbackQuery = { data: 'buy_tier:Gift' } as any;
+      (mockCtx as any).callbackQuery = { data: 'buy_tier:Gift' } as any;
 
       await handleCallbackQuery(mockCtx as any, paymentService);
 
@@ -180,7 +178,7 @@ describe('Subscription Flow', () => {
     it('should reject purchase for already active tier', async () => {
       mockCtx.user!.tier = SubscriptionTier.Professional;
       mockCtx.user!.subscriptionExpiresAt = new Date('2025-12-31');
-      mockCtx.callbackQuery = { data: 'buy_tier:Professional' } as any;
+      (mockCtx as any).callbackQuery = { data: 'buy_tier:Professional' } as any;
 
       await handleCallbackQuery(mockCtx as any, paymentService);
 
@@ -193,7 +191,7 @@ describe('Subscription Flow', () => {
     it('should allow renewal of expired subscription', async () => {
       mockCtx.user!.tier = SubscriptionTier.Professional;
       mockCtx.user!.subscriptionExpiresAt = new Date('2023-01-01'); // Expired
-      mockCtx.callbackQuery = { data: 'buy_tier:Professional' } as any;
+      (mockCtx as any).callbackQuery = { data: 'buy_tier:Professional' } as any;
 
       (paymentService.createPayment as jest.Mock).mockResolvedValueOnce({
         paymentId: 'payment-123',
@@ -208,7 +206,7 @@ describe('Subscription Flow', () => {
     });
 
     it('should handle payment creation errors', async () => {
-      mockCtx.callbackQuery = { data: 'buy_tier:Professional' } as any;
+      (mockCtx as any).callbackQuery = { data: 'buy_tier:Professional' } as any;
 
       (paymentService.createPayment as jest.Mock).mockRejectedValueOnce(
         new Error('Payment creation failed')
@@ -223,7 +221,7 @@ describe('Subscription Flow', () => {
 
     it('should handle missing user', async () => {
       mockCtx.user = null;
-      mockCtx.callbackQuery = { data: 'buy_tier:Professional' } as any;
+      (mockCtx as any).callbackQuery = { data: 'buy_tier:Professional' } as any;
 
       await handleCallbackQuery(mockCtx as any, paymentService);
 
@@ -232,7 +230,7 @@ describe('Subscription Flow', () => {
     });
 
     it('should handle unknown callback data', async () => {
-      mockCtx.callbackQuery = { data: 'unknown_action' } as any;
+      (mockCtx as any).callbackQuery = { data: 'unknown_action' } as any;
 
       await handleCallbackQuery(mockCtx as any, paymentService);
 
@@ -241,7 +239,7 @@ describe('Subscription Flow', () => {
     });
 
     it('should edit message markup after payment creation', async () => {
-      mockCtx.callbackQuery = { data: 'buy_tier:Professional' } as any;
+      (mockCtx as any).callbackQuery = { data: 'buy_tier:Professional' } as any;
 
       (paymentService.createPayment as jest.Mock).mockResolvedValueOnce({
         paymentId: 'payment-123',
@@ -253,7 +251,7 @@ describe('Subscription Flow', () => {
       await handleCallbackQuery(mockCtx as any, paymentService);
 
       expect(mockCtx.editMessageReplyMarkup).toHaveBeenCalledWith({
-        inline_keyboard: [],
+        reply_markup: { inline_keyboard: [] },
       });
     });
   });

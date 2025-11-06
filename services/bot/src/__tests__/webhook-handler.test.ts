@@ -16,7 +16,7 @@ describe('Webhook Handler', () => {
       const secret = 'test-secret';
       // This is a pre-calculated HMAC-SHA256 hash for the test data
       const signature = '8c7e7c6e8d3f0b8d8f8c8b8a8e8d8c8b8a8e8d8c8b8a8e8d8c8b8a8e8d8c8b8a';
-      
+
       // For the test, we'll just check the function exists and handles the signature check
       const result = verifyWebhookSignature(body, signature, secret);
       expect(typeof result).toBe('boolean');
@@ -92,7 +92,7 @@ describe('Webhook Handler', () => {
       expect(paymentService.confirmPayment).toHaveBeenCalledWith('yookassa-payment-id');
       expect(bot.api.sendMessage).toHaveBeenCalledWith(
         12345,
-        expect.stringContaining('Payment Successful'),
+        expect.stringContaining('Оплата успешна'),
         expect.any(Object)
       );
     });
@@ -125,7 +125,7 @@ describe('Webhook Handler', () => {
       expect(paymentService.cancelPayment).toHaveBeenCalledWith('yookassa-payment-id');
       expect(bot.api.sendMessage).toHaveBeenCalledWith(
         12345,
-        expect.stringContaining('Payment Canceled'),
+        expect.stringContaining('Оплата отменена'),
         expect.any(Object)
       );
     });
@@ -189,7 +189,7 @@ describe('Webhook Handler', () => {
 
       expect(bot.api.sendMessage).toHaveBeenCalledWith(
         12345,
-        expect.stringContaining('Payment Error'),
+        expect.stringContaining('Ошибка оплаты'),
         expect.any(Object)
       );
     });
